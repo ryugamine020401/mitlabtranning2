@@ -1,2 +1,4 @@
 .env
 *.yml
+__pycache__/
+resource
