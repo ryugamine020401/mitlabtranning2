@@ -19,7 +19,8 @@ class ListPermissionsModel(Model):
     f_list_id = fields.ForeignKeyField(
         "models.ListsModel", 
         related_name="permissions",
-        on_delete=fields.CASCADE
+        on_delete=fields.CASCADE,
+        to_field="list_uid"
     )
     granted_at = fields.CharField(max_length=36)
 
