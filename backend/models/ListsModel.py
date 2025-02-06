@@ -7,8 +7,7 @@ class ListsModel(Model):
     """
     Lists 的資料庫結構定義
     """
-    id = fields.IntField(pk=True)
-    list_uid = fields.CharField(max_length=36)
+    list_uid = fields.CharField(max_length=36, pk=True)
     f_user_id = fields.ForeignKeyField(
         "models.UsersModel", 
         related_name="lists",
