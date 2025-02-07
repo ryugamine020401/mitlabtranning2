@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from .BaseSchema import BaseSchema
+from pydantic import Field
 
 # 使用者註冊請求模型
-class CreatesUserSchema(BaseModel):
+class CreatesUserSchema(BaseSchema):
     username: str = Field(..., max_length=30)
     email: str = Field(..., max_length=320)
     password: str = Field(..., max_length=255)
@@ -11,33 +12,34 @@ class CreatesUserSchema(BaseModel):
     address: str = Field(..., max_length=255)
 
 # 使用者登入請求模型
-class LoginUserSchema(BaseModel):
+class LoginUserSchema(BaseSchema):
     username: str = Field(..., max_length=30)
     email: str = Field(..., max_length=320)
     password: str = Field(..., max_length=255)
 
 # 忘記密碼請求模型
-class ForgetPasswordUserSchema(BaseModel):
+class ForgetPasswordUserSchema(BaseSchema):
     username: str = Field(..., max_length=30)
     email: str = Field(..., max_length=320)
 
 # 重設密碼請求模型
-class ResetPasswordUserSchema(BaseModel):
+class ResetPasswordUserSchema(BaseSchema):
     username: str = Field(..., max_length=30)
     email: str = Field(..., max_length=320)
     password: str = Field(..., max_length=255)
+    verify_num: str = Field(..., max_length=36)
 
 # 更新密碼請求模型
-class UpdatePasswordUserSchema(BaseModel):
+class UpdatePasswordUserSchema(BaseSchema):
     username: str = Field(..., max_length=30)
     email: str = Field(..., max_length=320)
     old_password: str = Field(..., max_length=255)
     new_password: str = Field(..., max_length=255)
 
 # 更新 Email 請求模型
-class UpdateEmailUserSchema(BaseModel):
+class UpdateEmailUserSchema(BaseSchema):
     email: str = Field(..., max_length=320)
 
 # 獲取使用者 ID 請求模型
-class GetIDUserSchema(BaseModel):
+class GetIDUserSchema(BaseSchema):
     email: str = Field(..., max_length=320)
