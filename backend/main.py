@@ -9,11 +9,11 @@ from fastapi.staticfiles import StaticFiles
 from tortoise.contrib.fastapi import register_tortoise
 from jose import jwt, JWTError
 from dotenv import load_dotenv
-import config, random, string, httpx
+from email.mime.text import MIMEText
+import config, random, string, httpx, smtplib
+
 
 from models import UsersModel, ListsModel, ProductsModel, ProfilesModel
-from schemas.CreateProductSchema import CreateProductSchema
-from schemas.GetProductSchema import GetProductSchema
 from schemas.UsersSchema import *
 from schemas.ProfilesSchema import *
 from schemas.ListsSchema import *
@@ -28,6 +28,11 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "default-secret-key")  # 如果未�
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 15))
 
+# 從 .env 獲取 SMTP 配置
+SMTP_SERVER = os.getenv("SMTP_SERVER")
+SMTP_PORT = int(os.getenv("SMTP_PORT"))
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
 
 async def get_next_id(table) -> int:
     """
@@ -59,6 +64,37 @@ async def generate_unique_list_uid() -> str:
         existing_list = await ListsModel.filter(list_uid=list_uid).first()
         if not existing_list:
             return list_uid
+
+
+async def generate_unique_verify_num() -> str:
+    """
+    生成唯一的 6 位數驗證碼，並確保不重複
+    """
+    while True:
+        verify_num = ''.join(random.choices(string.digits, k=6))  # 生成 6 位數字亂數
+        existing_user = await UsersModel.filter(verify_num=verify_num).first()
+        if not existing_user:
+            return verify_num
+
+
+async def send_reset_email(email: str, verify_num: str):
+    """
+    透過 SMTP 發送重設密碼的驗證碼
+    """
+    
+    msg = MIMEText(f"您的密碼重設驗證碼為: {verify_num}")
+    msg["Subject"] = "密碼重設驗證碼"
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = email
+    
+    try:
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        server.sendmail(SENDER_EMAIL, [email], msg.as_string())
+        server.quit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to send email")
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -206,6 +242,64 @@ async def login_user(data: LoginUserSchema):
     
     except Exception as e:
         return {"status": "fail", "msg": "Fail to login.", "data": []}
+
+@app.post("/api/forgetPW_user/")
+async def forgetPW_user(data: ForgetPasswordUserSchema):
+    """
+    使用者忘記密碼，發送驗證碼至郵箱
+    """
+    try:
+        # 確保資料完整性
+        if not data.username or not data.email:
+            return {"status": "fail", "msg": "Incorrect information or account does not exist."}
+        
+        # 查詢用戶
+        user = await UsersModel.filter(username=data.username, email=data.email).first()
+        if not user:
+            return {"status": "fail", "msg": "Incorrect information or account does not exist."}
+        
+        # 生成唯一驗證碼並儲存
+        verify_num = await generate_unique_verify_num()
+        user.verify_num = verify_num
+        await user.save()
+        
+        # 發送郵件
+        await send_reset_email(data.email, verify_num)
+        
+        return {"status": "success", "msg": "Reset password link sent to your email."}
+    
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to sent verify number to your email."}
+
+
+@app.post("/api/resetPW_user/")
+async def resetPW_user(data: ResetPasswordUserSchema):
+    """
+    使用者重設密碼
+    """
+    try:
+        # 確保資料完整性
+        if not all([data.username, data.email, data.password, data.verify_num]):
+            return {"status": "fail", "msg": "Fail to reset password."}
+
+        # 查詢用戶
+        user = await UsersModel.filter(username=data.username, email=data.email).first()
+        if not user:
+            return {"status": "fail", "msg": "Fail to reset password."}
+
+        # 驗證 verify_num
+        if user.verify_num == "-1" or user.verify_num != data.verify_num:
+            return {"status": "fail", "msg": "Fail to reset password."}
+
+        # 重設密碼
+        user.password = data.password
+        user.verify_num = "-1"
+        await user.save()
+
+        return {"status": "success", "msg": "Successful reset password."}
+
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to reset password.", "error": str(e)}
 
 
 @app.post("/api/create_profile/")
