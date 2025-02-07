@@ -313,12 +313,12 @@ async def get_product(data: GetProductSchema, current_user: UsersModel = Depends
     try:
         # 檢查資料完整性
         if not data.f_list_id:
-            return {"status": "fail", "msg": "Fail to get product."}
+            return {"status": "fail", "msg": "Fail to get product.", "data": []}
 
         # 查詢該清單是否存在
         user_lists = await ListsModel.filter(list_uid=data.f_list_id).first()
         if not user_lists:
-            return {"status": "fail", "msg": "Fail to get product."}
+            return {"status": "fail", "msg": "Fail to get product.", "data": []}
 
         # 查詢該清單底下的所有商品
         products = await ProductsModel.filter(f_list_id=data.f_list_id).all()
@@ -344,7 +344,7 @@ async def get_product(data: GetProductSchema, current_user: UsersModel = Depends
         }
     
     except Exception as e:
-        return {"status": "fail", "msg": "Fail to get product.", "data": [], "e": str(e)}
+        return {"status": "fail", "msg": "Fail to get product.", "data": []}
 
 
 @app.post("/api/create_product/")
