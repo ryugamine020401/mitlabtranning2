@@ -88,7 +88,7 @@ def verify_access_token(token: str):
     except JWTError:
         raise HTTPException(status_code=401, detail="Token 驗證失敗")
 
-# api 進來就先打，獲取 user_id 後再進行後續操作，可能只須返回 user_id
+
 async def get_current_user(authorization: str = Header(...)):
     """
     從 Authorization 標頭驗證 JWT Token 並返回使用者
@@ -118,9 +118,11 @@ async def read_root():
     return {"Hello": "World"}
 
 
-# 使用者註冊
 @app.post("/api/create_user/")
 async def create_user(data: CreatesUserSchema):
+    """
+    使用者註冊
+    """
     try:
         # 檢查資料完整性
         if not all([data.username, data.email, data.password, data.name, data.phone_number, data.date_of_birth, data.address]):
@@ -147,6 +149,7 @@ async def create_user(data: CreatesUserSchema):
             username=data.username,
             email=data.email,
             password=data.password,
+            verify_num=str(-1),
             created_at=current_time,
             updated_at=current_time
         )
@@ -175,9 +178,11 @@ async def create_user(data: CreatesUserSchema):
         return {"status": "fail", "msg": "Fail to create user.", "data": []}
 
 
-# 使用者登入
 @app.post("/api/login_user/")
 async def login_user(data: LoginUserSchema):
+    """
+    使用者登入
+    """
     try:
         # 檢查資料完整性
         if not all([data.username, data.email, data.password]):
@@ -203,9 +208,11 @@ async def login_user(data: LoginUserSchema):
         return {"status": "fail", "msg": "Fail to login.", "data": []}
 
 
-# 創建使用者基本資料
 @app.post("/api/create_profile/")
 async def create_profile(data: CreateProfileSchema):
+    """
+    創建使用者基本資料
+    """
     try:
         # 檢查資料完整性
         if not all([data.f_user_id, data.name, data.phone_number, data.date_of_birth, data.address]):
@@ -236,9 +243,11 @@ async def create_profile(data: CreateProfileSchema):
         return {"status": "fail", "msg": "Fail to create profile."}
 
 
-# 獲取清單
 @app.post("/api/get_list/")
 async def get_list(current_user: UsersModel = Depends(get_current_user)):
+    """
+    獲取清單
+    """
     try:
         user_lists = await ListsModel.filter(f_user_id=current_user)
         if not user_lists:
@@ -263,9 +272,11 @@ async def get_list(current_user: UsersModel = Depends(get_current_user)):
         return {"status": "fail", "msg": "Fail to get list.", "data": []}
 
 
-# 新增清單
 @app.post("/api/create_list/")
 async def create_list(data: CreateListSchema, current_user: UsersModel = Depends(get_current_user)):
+    """
+    新增清單
+    """
     try:
         # 檢查資料完整性
         if not data.list_name:
@@ -293,11 +304,12 @@ async def create_list(data: CreateListSchema, current_user: UsersModel = Depends
     except Exception as e:
         return {"status": "fail", "msg": "Fail to create list."}
 
-# =============================================================
 
-# 獲取產品
 @app.post("/api/get_product")
 async def get_product(data: GetProductSchema, current_user: UsersModel = Depends(get_current_user)):
+    """
+    獲取產品
+    """
     try:
         # 檢查資料完整性
         if not data.f_list_id:
@@ -324,7 +336,7 @@ async def get_product(data: GetProductSchema, current_user: UsersModel = Depends
                     "product_barcode": product.product_barcode,
                     "product_number": product.product_number,
                     "product_image_url": product.product_image_url,
-                    "expire_date": product.expire_date,
+                    "expiry_date": product.expiry_date,
                     "description": product.description
                 }
                 for product in products
@@ -332,12 +344,14 @@ async def get_product(data: GetProductSchema, current_user: UsersModel = Depends
         }
     
     except Exception as e:
-        return {"status": "fail", "msg": "Fail to get product.", "data": []}
+        return {"status": "fail", "msg": "Fail to get product.", "data": [], "e": str(e)}
 
 
-# 新增產品
 @app.post("/api/create_product/")
 async def create_product(data: CreateProductSchema, current_user: UsersModel = Depends(get_current_user)):
+    """
+    新增產品
+    """
     try:
         # 確認產品資料完整性
         if not all([data.product_name, data.product_barcode, data.product_number, data.expiry_date]):
