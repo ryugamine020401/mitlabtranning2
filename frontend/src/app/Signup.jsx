@@ -21,7 +21,6 @@ export function SignupView() {
       birthDate: "",
       city: "",
       address: "",
-      profile_picture_url: "",
     })
     const [errors, setErrors] = useState({})
     const [showPassword, setShowPassword] = useState(false)
@@ -47,11 +46,10 @@ export function SignupView() {
             phone_number: formData.phone,
             date_of_birth: formData.birthDate,
             address: `${formData.city}${formData.address}`,
-            //profile_picture_url: formData.profile_picture_url,
           })
           .then((result) => {
             console.log("Login successful!")
-            setSuccessMessage("註冊成功！請前往登入")
+            setSuccessMessage("註冊成功！請前往登入頁面")
           })
           .catch((error) => {
             setErrorMessage(error.message) // 顯示API回傳的錯誤訊息
@@ -70,16 +68,6 @@ export function SignupView() {
       
     }
 
-    const handleFileSelect = (file) => {
-      if (file) {
-        const url = URL.createObjectURL(file)
-        setFormData((prev) => ({
-          ...prev,
-          profile_picture_url: url,
-        }))
-      }
-    
-    }
     
     const validateForm = () => {
       const newErrors = {}
@@ -114,9 +102,6 @@ export function SignupView() {
     if (!formData.address.trim()) {
       newErrors.address = "地址為必填"
     }
-    if (!formData.profile_picture_url) {
-      newErrors.profile_picture = "請上傳圖片"
-    }
     setErrors(newErrors)
     console.log(errors)
     /*setErrors((prev) => ({
@@ -136,17 +121,6 @@ export function SignupView() {
           <h1 className="text-2xl font-bold text-center flex-1">Create account</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          
-            <div className="w-42 h-42 items-center justify-center">
-              <FileUpload
-                previewUrl={formData.profile_picture_url}
-                onFileSelect={handleFileSelect}
-                label="個人檔案照片 *"
-                className="w-full h-full"
-                error={errors.profile_picture}
-              />
-            
-          </div>
           <Input
             name="name"
             label="Name *"

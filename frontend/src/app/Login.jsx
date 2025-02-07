@@ -66,7 +66,7 @@ export function LoginView() {
     console.log("logging in...")
     // 登入邏輯
 
-    //router.push("/lists")
+    router.push("/lists")
   }
 
   return (

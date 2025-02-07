@@ -14,6 +14,7 @@ export function ForgotPasswordView() {
       email: "",
       password: "",
       confirmPassword: "",
+      verificationCode: "",
     })
     const [errors, setErrors] = useState({})
     const [showPassword, setShowPassword] = useState(false)
@@ -23,32 +24,53 @@ export function ForgotPasswordView() {
     const handleChange = (e) => {
       const { name, value } = e.target;
       
+      //讓驗證碼不能輸超過6碼
+      if (name === "verificationCode" && value.length > 6) {
+        return
+      }
+      
       setFormData((prev) => {
         const updatedFormData = {
           ...prev,
           [name]: value,
         };
     
-        validateField(updatedFormData); // 傳入最新數據進行驗證
-    
         return updatedFormData;
       });
     };
     
-    const validateField = (updatedFormData) => {
+    const validateField = () => {
       const newErrors = {};
-      if (!updatedFormData.username.trim()) {
+      if (!formData.username.trim()) {
         newErrors.username = "username為必填";
       }
-      if (!updatedFormData.email.trim()) {
+      if (!formData.email.trim()) {
         newErrors.email = "Email為必填";
-      } else if (!/\S+@\S+\.\S+/.test(updatedFormData.email)) {
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         newErrors.email = "Email格式不正確";
       }
-    
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     };
+
+    const validateField2 = () => {
+        const newErrors = {};
+        if (!formData.verificationCode) {
+          newErrors.verificationCode = "請輸入驗證碼"
+        } else if (formData.verificationCode.length < 6) {
+          newErrors.verificationCode = "驗證碼必須為6碼"
+        }
+        if (!formData.password) {
+        newErrors.password = "password為必填"
+        } 
+        if (!formData.confirmPassword) {
+        newErrors.confirmPassword = "請確認密碼"
+        } else if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = "密碼不一致"
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      };
   
     const handleSubmit = (e) => {
       e.preventDefault()
@@ -59,14 +81,19 @@ export function ForgotPasswordView() {
     // 假設驗證成功
     const handleVerify = () => {
       // 處理驗證邏輯
-      const isValid = validateField(formData);
-      //setIsVerified(true) // 驗證成功後，解鎖按鈕
+      //const isValid = validateField(formData);
+      if (validateField()){
+        setIsVerified(true) // 驗證成功後，解鎖按鈕
+      }
+       
     }
 
     const handleResetPassword = (e) =>{
       if (!isVerified) return // 確保只有通過驗證後才能執行
-      console.log("Reset Password Process Started...")
-      // 執行重設密碼邏輯
+      if (validateField2()) {
+        console.log("Reset Password Process Started...")
+        // 執行重設密碼邏輯
+      }
     }
   
     return (
@@ -93,9 +120,17 @@ export function ForgotPasswordView() {
             onChange={handleChange}
             error={errors.email}
           />
-          <Button type="button" className="w-full" disabled={Object.keys(errors).length > 0} onClick={handleVerify}>
+          <Button type="button" className="w-full" onClick={handleVerify}>
             Verify
           </Button>
+          <Input
+              name="verificationCode"
+              label="VerificationCode *"
+              placeholder="請輸入6位驗證碼"
+              value={formData.verificationCode}
+              onChange={handleChange}
+              error={errors.verificationCode}
+            />
           <div className="relative">
             <Input
               name="password"
