@@ -14,7 +14,8 @@ class ProductsModel(Model):
     f_list_id = fields.ForeignKeyField(
         "models.ListsModel", 
         related_name="products",
-        on_delete=fields.CASCADE
+        on_delete=fields.CASCADE,
+        to_field="list_uid"
     )
     product_name = fields.CharField(max_length=100)
     product_barcode = fields.CharField(max_length=13)

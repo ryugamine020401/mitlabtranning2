@@ -1,25 +1,24 @@
-import os
 from datetime import datetime, timedelta
-import base64
 from pathlib import Path
 from typing import List, Optional
 from uuid import uuid4
+import os, base64
 
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.staticfiles import StaticFiles
 from tortoise.contrib.fastapi import register_tortoise
 from jose import jwt, JWTError
 from dotenv import load_dotenv
-import config
-import random
-import string
+from email.mime.text import MIMEText
+import config, random, string, httpx, smtplib
 
-from models import UsersModel, ListsModel, ProductsModel
-from schemas.RegisterSchema import RegisterFormSchema
-from schemas.LoginSchema import LoginFormSchema
-from schemas.CreateListSchema import CreateListSchema
-from schemas.CreateProductSchema import CreateProductSchema
-from schemas.GetProductSchema import GetProductSchema
+
+from models import UsersModel, ListsModel, ProductsModel, ProfilesModel
+from schemas.UsersSchema import *
+from schemas.ProfilesSchema import *
+from schemas.ListsSchema import *
+from schemas.ProductsSchema import *
+
 
 # 載入 .env 檔案
 load_dotenv()
@@ -29,6 +28,11 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "default-secret-key")  # 如果未�
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 15))
 
+# 從 .env 獲取 SMTP 配置
+SMTP_SERVER = os.getenv("SMTP_SERVER")
+SMTP_PORT = int(os.getenv("SMTP_PORT"))
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
 
 async def get_next_id(table) -> int:
     """
@@ -60,6 +64,37 @@ async def generate_unique_list_uid() -> str:
         existing_list = await ListsModel.filter(list_uid=list_uid).first()
         if not existing_list:
             return list_uid
+
+
+async def generate_unique_verify_num() -> str:
+    """
+    生成唯一的 6 位數驗證碼，並確保不重複
+    """
+    while True:
+        verify_num = ''.join(random.choices(string.digits, k=6))  # 生成 6 位數字亂數
+        existing_user = await UsersModel.filter(verify_num=verify_num).first()
+        if not existing_user:
+            return verify_num
+
+
+async def send_reset_email(email: str, verify_num: str):
+    """
+    透過 SMTP 發送重設密碼的驗證碼
+    """
+    
+    msg = MIMEText(f"您的密碼重設驗證碼為: {verify_num}")
+    msg["Subject"] = "密碼重設驗證碼"
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = email
+    
+    try:
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        server.sendmail(SENDER_EMAIL, [email], msg.as_string())
+        server.quit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to send email")
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -105,213 +140,6 @@ async def get_current_user(authorization: str = Header(...)):
 app = FastAPI()
 app.mount("/api/resource", StaticFiles(directory="resource"), name="resource")
 
-@app.get("/api/")
-async def read_root():
-    return {"Hello": "World"}
-
-
-@app.post("/api/register/")
-async def create_user(data: RegisterFormSchema):
-    # 確認密碼一致
-    if data.password2 != data.password1:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-
-    # 檢查用戶是否已存在
-    existing_user = await UsersModel.filter(username=data.username).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
-    next_id = await get_next_id(UsersModel)  # 確保返回有效的 id
-    user_uid = await generate_unique_user_uid()
-
-    current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    # 建立新用戶，密碼需加密
-    user = await UsersModel.create(
-        id=str(next_id),
-        user_uid=str(user_uid),
-        username=data.username,
-        email=data.email,
-        password=data.password2,
-        created_at=current_time,
-        updated_at=current_time
-    )
-
-    return {"id": user.id, "username": user.username, "email": user.email}
-
-
-@app.post("/api/login/")
-async def login_user(data: LoginFormSchema):
-    """
-    處理用戶登入請求
-    """
-    # 嘗試查詢用戶，根據 username_or_email 查找
-    user = await UsersModel.filter(
-        username=data.username_or_email
-    ).first() or await UsersModel.filter(
-        email=data.username_or_email
-    ).first()
-
-    # 驗證用戶是否存在
-    if not user:
-        raise HTTPException(status_code=404, detail="用戶不存在")
-
-    # 驗證密碼
-    if user.password != data.password:  # 這裡是明文比對，未來應該改用加密驗證
-        raise HTTPException(status_code=401, detail="密碼錯誤")
-
-    # 創建 JWT Token
-    access_token_expires = timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.user_uid}, expires_delta=access_token_expires
-    )
-
-    # 返回基本用戶資訊和 Token
-    return {
-        "user_uid": user.user_uid,
-        "username": user.username,
-        "email": user.email,
-        "access_token": access_token,
-        "token_type": "bearer",
-        "message": "登入成功",
-    }
-
-@app.post("/api/get_lists/")
-async def get_user_lists(current_user: UsersModel = Depends(get_current_user)):
-    """
-    獲取當前使用者的所有清單（僅返回名稱和描述）
-    """
-    user_lists = await ListsModel.filter(f_user_id=current_user).all()
-    return [
-        {
-            "list_name": lst.list_name,
-            "description": lst.description,
-        }
-        for lst in user_lists
-    ]
-
-
-@app.post("/api/create_list/")
-async def create_list(data: CreateListSchema, current_user: UsersModel = Depends(get_current_user)):
-    """
-    創建清單 API
-    """
-    created_at = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-
-    # 檢查清單名稱是否已存在
-    existing_list = await ListsModel.filter(f_user_id=current_user, list_name=data.list_name).first()
-    if existing_list:
-        raise HTTPException(status_code=400, detail="清單名稱已存在")
-
-    # 創建清單
-    list_uid = await generate_unique_list_uid()
-    new_list = await ListsModel.create(
-        list_uid=list_uid,
-        f_user_id=current_user,
-        list_name=data.list_name,
-        description=data.description,
-        created_at=created_at,
-    )
-
-    return {
-        "list_uid": new_list.list_uid,
-        "list_name": new_list.list_name,
-        "description": new_list.description,
-        "created_at": new_list.created_at,
-        "message": "清單創建成功",
-    }
-
-
-
-@app.post("/api/create_product/")
-async def create_product(
-    data: CreateProductSchema, 
-    current_user: UsersModel = Depends(get_current_user)
-):
-    """
-    新增商品 API，處理 Base64 編碼的圖片
-    """
-    print("123123")
-    # 確認'清單是否存在且屬於當前用戶
-    user_list = await ListsModel.filter(list_name=data.list_name, f_user_id=current_user).first()
-    if not user_list:
-        raise HTTPException(status_code=404, detail="清單不存在或無權限訪問")
-
-    # 確認商品是否已存在（依條碼和有效期判定）
-    existing_product = await ProductsModel.filter(
-        f_user_id=current_user,
-        f_list_id=user_list,
-        product_barcode=data.product_barcode,
-        expiry_date=data.expiry_date
-    ).first()
-    if existing_product:
-        raise HTTPException(status_code=400, detail="相同條碼和效期的商品已存在")
-
-    # 處理 Base64 編碼的圖片
-    try:
-        image_data = base64.b64decode(data.product_image)  # 解碼 Base64 圖片
-    except Exception:
-        raise HTTPException(status_code=400, detail="圖片的 Base64 編碼無效")
-
-    # 建立資料夾結構：resource/{user_uid}/{list_name}/
-    folder_path = Path("resource") / str(current_user.user_uid) / data.list_name
-
-    # 檢查資料夾是否存在，如果不存在則建立
-    if not folder_path.exists():
-        folder_path.mkdir(parents=True, exist_ok=True)
-
-    # 儲存圖片
-    unique_filename = f"{uuid4().hex}.jpg"  # 假設圖片儲存為 JPG 格式
-    image_path = folder_path / unique_filename
-
-    with open(image_path, "wb") as buffer:
-        buffer.write(image_data)
-
-    # 創建商品
-    new_product = await ProductsModel.create(
-        f_user_id=current_user,
-        f_list_id=user_list,
-        product_name=data.product_name,
-        product_barcode=data.product_barcode,
-        product_number=data.product_number,
-        product_image_url=str(image_path),  # 將圖片路徑儲存到資料庫
-        expiry_date=data.expiry_date,
-        description=data.description
-    )
-
-    return {
-        "message": "商品新增成功"
-    }
-
-
-@app.post("/api/get_product/")
-async def get_product(
-    data: GetProductSchema,  # 這個 Schema 只需要有 list_name (可依照你的需求擴充)
-    current_user: UsersModel = Depends(get_current_user)
-) -> List[str]:
-    """
-    從 token 取得使用者，並查詢該使用者在某個清單（list_name）下的所有商品。
-    只回傳商品的圖片網址 (product_image_url)。
-    """
-
-    # 1. 找到該使用者指定的清單
-    user_list = await ListsModel.filter(
-        f_user_id=current_user,
-        list_name=data.list_name
-    ).first()
-
-    if not user_list:
-        raise HTTPException(
-            status_code=404,
-            detail="清單不存在或無權限訪問"
-        )
-
-    # 2. 查詢該清單底下所有商品
-    products = await ProductsModel.filter(
-        f_user_id=current_user,
-        f_list_id=user_list
-    )
-
-    # 3. 只回傳每個商品的圖片 URL
-    return [product.product_image_url for product in products]
 
 register_tortoise(
     app,
@@ -319,3 +147,357 @@ register_tortoise(
     generate_schemas=True,
     add_exception_handlers=True,
 )
+
+
+@app.get("/api/")
+async def read_root():
+    return {"Hello": "World"}
+
+
+@app.post("/api/create_user/")
+async def create_user(data: CreatesUserSchema):
+    """
+    使用者註冊
+    """
+    try:
+        # 檢查資料完整性
+        if not all([data.username, data.email, data.password, data.name, data.phone_number, data.date_of_birth, data.address]):
+            return {"status": "fail", "msg": "Fail to create user.", "data": []}
+
+        # 檢查 email 是否已註冊
+        existing_email = await UsersModel.filter(email=data.email).first()
+        if existing_email:
+            return {"status": "fail", "msg": "This email has already been registered.", "data": []}
+
+        # 檢查 username 是否已存在
+        existing_user = await UsersModel.filter(username=data.username).first()
+        if existing_user:
+            return {"status": "fail", "msg": "This username has already been registered.", "data": []}
+
+        next_id = await get_next_id(UsersModel)  # 確保返回有效的 id
+        user_uid = await generate_unique_user_uid()
+        current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+        # 建立新用戶，密碼需加密
+        user = await UsersModel.create(
+            id=str(next_id),
+            user_uid=str(user_uid),
+            username=data.username,
+            email=data.email,
+            password=data.password,
+            verify_num=str(-1),
+            created_at=current_time,
+            updated_at=current_time
+        )
+
+        # 創建 profile
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "http://localhost:8000/api/create_profile/",  # 確保這是 FastAPI 伺服器的網址
+                json={
+                    "f_user_id": user.user_uid,
+                    "name": data.name,
+                    "phone_number": data.phone_number,
+                    "date_of_birth": data.date_of_birth,
+                    "address": data.address
+                }
+            )
+            result = response.json()
+
+        return {
+            "status": "success", 
+            "msg": "Successful registration.",
+            "data": result
+        }
+    
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to create user.", "data": []}
+
+
+@app.post("/api/login_user/")
+async def login_user(data: LoginUserSchema):
+    """
+    使用者登入
+    """
+    try:
+        # 檢查資料完整性
+        if not all([data.username, data.email, data.password]):
+            return {"status": "fail", "msg": "Fail to login.", "data": []}
+
+        # 查詢用戶，檢查 username 是否存在
+        user = await UsersModel.filter(username=data.username).first()
+        if not user:
+            return {"status": "fail", "msg": "This user doesn't exist.", "data": []}
+
+        # 驗證 password 和 email
+        if user.password != data.password or user.email != data.email:  # 這裡是明文比對，未來應該改用加密驗證
+            return {"status": "fail", "msg": "The email or password is wrong.", "data": []}
+
+        # 創建 JWT Token
+        access_token_expires = timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(data={"sub": user.user_uid}, expires_delta=access_token_expires)
+
+        # 確認登入，回傳 token
+        return {"status": "success", "msg": "Successful login.", "data": [{"token": access_token}]}
+    
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to login.", "data": []}
+
+@app.post("/api/forgetPW_user/")
+async def forgetPW_user(data: ForgetPasswordUserSchema):
+    """
+    使用者忘記密碼，發送驗證碼至郵箱
+    """
+    try:
+        # 確保資料完整性
+        if not data.username or not data.email:
+            return {"status": "fail", "msg": "Incorrect information or account does not exist."}
+        
+        # 查詢用戶
+        user = await UsersModel.filter(username=data.username, email=data.email).first()
+        if not user:
+            return {"status": "fail", "msg": "Incorrect information or account does not exist."}
+        
+        # 生成唯一驗證碼並儲存
+        verify_num = await generate_unique_verify_num()
+        user.verify_num = verify_num
+        await user.save()
+        
+        # 發送郵件
+        await send_reset_email(data.email, verify_num)
+        
+        return {"status": "success", "msg": "Reset password link sent to your email."}
+    
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to sent verify number to your email."}
+
+
+@app.post("/api/resetPW_user/")
+async def resetPW_user(data: ResetPasswordUserSchema):
+    """
+    使用者重設密碼
+    """
+    try:
+        # 確保資料完整性
+        if not all([data.username, data.email, data.password, data.verify_num]):
+            return {"status": "fail", "msg": "Fail to reset password."}
+
+        # 查詢用戶
+        user = await UsersModel.filter(username=data.username, email=data.email).first()
+        if not user:
+            return {"status": "fail", "msg": "Fail to reset password."}
+
+        # 驗證 verify_num
+        if user.verify_num == "-1" or user.verify_num != data.verify_num:
+            return {"status": "fail", "msg": "Fail to reset password."}
+
+        # 重設密碼
+        user.password = data.password
+        user.verify_num = "-1"
+        await user.save()
+
+        return {"status": "success", "msg": "Successful reset password."}
+
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to reset password.", "error": str(e)}
+
+
+@app.post("/api/create_profile/")
+async def create_profile(data: CreateProfileSchema):
+    """
+    創建使用者基本資料
+    """
+    try:
+        # 檢查資料完整性
+        if not all([data.f_user_id, data.name, data.phone_number, data.date_of_birth, data.address]):
+            return {"status": "fail", "msg": "Fail to create profile."}
+        
+        # 檢查使用者是否存在
+        current_user = await UsersModel.filter(user_uid=data.f_user_id).first()
+        if not current_user:
+            return {"status": "fail", "msg": "Fail to create profile."}
+
+        # 檢查該用戶是否已經有 profile
+        existing_profile = await ProfilesModel.filter(f_user_uid=current_user).first()
+        if existing_profile:
+            return {"status": "fail", "msg": "Fail to create profile."}
+
+        # 創建基本資料
+        profile = await ProfilesModel.create(
+            f_user_uid=current_user,
+            name=data.name,
+            phone_number=data.phone_number,
+            date_of_birth=data.date_of_birth,
+            address=data.address
+        )
+
+        return {"status": "success", "msg": "Successful create profile."}
+
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to create profile."}
+
+
+@app.post("/api/get_list/")
+async def get_list(current_user: UsersModel = Depends(get_current_user)):
+    """
+    獲取清單
+    """
+    try:
+        user_lists = await ListsModel.filter(f_user_id=current_user)
+        if not user_lists:
+            return {"status": "success", "msg": "No have any list.", "data": []}
+
+        # 回傳清單資料
+        return {
+            "status": "success",
+            "msg": "Successful get list.",
+            "data": [
+                {
+                    "list_uid": lst.list_uid,
+                    "list_name": lst.list_name,
+                    "description": lst.description,
+                    "created_at": lst.created_at
+                }
+                for lst in user_lists
+            ]
+        }
+
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to get list.", "data": []}
+
+
+@app.post("/api/create_list/")
+async def create_list(data: CreateListSchema, current_user: UsersModel = Depends(get_current_user)):
+    """
+    新增清單
+    """
+    try:
+        # 檢查資料完整性
+        if not data.list_name:
+            return {"status": "fail", "msg": "Fail to create list."}
+
+        # 檢查清單名稱是否已存在
+        existing_list = await ListsModel.filter(f_user_id=current_user, list_name=data.list_name).first()
+        if existing_list:
+            return {"status": "fail", "msg": "This list_name has already exist."}
+
+        created_at = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        list_uid = await generate_unique_list_uid()
+        
+        # 創建清單
+        new_list = await ListsModel.create(
+            list_uid=list_uid,
+            f_user_id=current_user,
+            list_name=data.list_name,
+            description=data.description,
+            created_at=created_at,
+        )
+
+        return {"status": "success", "msg": "Successful create list."}
+
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to create list."}
+
+
+@app.post("/api/get_product")
+async def get_product(data: GetProductSchema, current_user: UsersModel = Depends(get_current_user)):
+    """
+    獲取產品
+    """
+    try:
+        # 檢查資料完整性
+        if not data.f_list_id:
+            return {"status": "fail", "msg": "Fail to get product.", "data": []}
+
+        # 查詢該清單是否存在
+        user_lists = await ListsModel.filter(list_uid=data.f_list_id).first()
+        if not user_lists:
+            return {"status": "fail", "msg": "Fail to get product.", "data": []}
+
+        # 查詢該清單底下的所有商品
+        products = await ProductsModel.filter(f_list_id=data.f_list_id).all()
+        if not products:
+            return {"status": "success", "msg": "No have any product in this list.", "data": []}
+        
+        # 回傳商品資訊
+        return {
+            "status": "success",
+            "msg": "Successful get product.",
+            "data": [
+                {
+                    "id": product.id,
+                    "product_name": product.product_name,
+                    "product_barcode": product.product_barcode,
+                    "product_number": product.product_number,
+                    "product_image_url": product.product_image_url,
+                    "expiry_date": product.expiry_date,
+                    "description": product.description
+                }
+                for product in products
+            ]
+        }
+    
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to get product.", "data": []}
+
+
+@app.post("/api/create_product/")
+async def create_product(data: CreateProductSchema, current_user: UsersModel = Depends(get_current_user)):
+    """
+    新增產品
+    """
+    try:
+        # 確認產品資料完整性
+        if not all([data.product_name, data.product_barcode, data.product_number, data.expiry_date]):
+            return {"status": "fail", "msg": "Fail to create product."}
+
+        # 確認清單是否存在且屬於當前用戶
+        user_list = await ListsModel.filter(list_uid=data.f_list_id, f_user_id=current_user).first()
+        if not user_list:
+            return {"status": "fail", "msg": "Fail to create product."}
+
+        # 確認產品是否已存在（依條碼和有效期判定）
+        existing_product = await ProductsModel.filter(f_list_id=user_list, product_barcode=data.product_barcode, expiry_date=data.expiry_date).first()
+        if existing_product:
+            return {"status": "fail", "msg": "This product with the same barcode and expiry date already exists."}
+
+        # 處理 Base64 編碼的圖片
+        try:
+            image_data = base64.b64decode(data.product_image_url)  # 解碼 Base64 圖片
+        except Exception as e:
+            return {"status": "fail", "msg": "Invalid Base64 image encoding."}
+
+        # 建立資料夾結構：resource/{user_uid}/{list_name}/
+        folder_path = Path("resource") / str(current_user.user_uid) / str(user_list.list_name)
+
+        # 檢查資料夾是否存在，如果不存在則建立
+        if not folder_path.exists():
+            folder_path.mkdir(parents=True, exist_ok=True)
+
+        # 儲存圖片
+        unique_filename = f"{uuid4().hex}.jpg"  # 假設圖片儲存為 JPG 格式
+        image_path = folder_path / unique_filename
+
+        with open(image_path, "wb") as buffer:
+            buffer.write(image_data)
+
+        # 創建商品
+        new_product = await ProductsModel.create(
+            f_user_id=current_user,
+            f_list_id=user_list,
+            product_name=data.product_name,
+            product_barcode=data.product_barcode,
+            product_number=data.product_number,
+            product_image_url=str(image_path),
+            expiry_date=data.expiry_date,
+            description=data.description
+        )
+
+        return {
+            "status": "success",
+            "msg": "Successful create product."
+        }
+
+    except Exception as e:
+        return {"status": "fail", "msg": "Fail to create product.", "e": str(e)}
+
