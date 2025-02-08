@@ -1,8 +1,8 @@
 import axios from "axios";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/UsersManager`;
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/ListsManager`;
 
-export const UserBox = (endpoint, data, needAuth = false) => {
+export const ListBox = (endpoint, data, needAuth = false) => {
   // 取得 token（若需要）
   const token = needAuth ? localStorage.getItem("token") : null;
 
