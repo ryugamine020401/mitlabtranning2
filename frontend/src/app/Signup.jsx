@@ -7,7 +7,8 @@ import { useDispatch, useSelector } from "react-redux"
 import { setView, setAuth } from "../../store/authSlice"
 import { Eye, EyeOff } from "lucide-react"
 import { FileUpload } from "./components/FileUpload"
-import { CreateUser } from "../../services/CreateUser"
+import { CreateUser } from "../../services/UserManager/CreateUser"
+import { UserBox } from "../../services/UserManager/UserBox"
 
 export function SignupView() {
     const dispatch = useDispatch()
