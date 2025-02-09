@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 import httpx, random, string, smtplib
@@ -81,7 +81,6 @@ class UsersManager:
         try:
             # 檢查資料完整性
             if not all([data.username, data.email, data.password, data.name, data.phone_number, data.date_of_birth, data.address]):
-                print("1")
                 return {"status": "fail", "msg": "Fail to create user.", "data": []}
 
             # 檢查 email 是否已註冊
@@ -221,3 +220,31 @@ class UsersManager:
 
         except Exception as e:
             return {"status": "fail", "msg": "Fail to reset password."}
+
+    @staticmethod
+    @router.post("/updatePW_user/")
+    async def updatePW_user(data: UpdatePasswordUserSchema, current_user: UsersModel = Depends(get_current_user)):
+        """
+        使用者更新密碼
+        """
+        try:
+            # 確保資料完整性
+            if not all([data.username, data.email, data.old_password, data.new_password]):
+                return {"status": "fail", "msg": "Fail to update password."}
+
+            # 確保舊密碼和新密碼不同
+            if data.old_password == data.new_password:
+                return {"status": "fail", "msg": "Fail to update password."}
+
+            # 驗證舊密碼是否正確
+            if current_user.password != data.old_password:
+                return {"status": "fail", "msg": "Old password is wrong."}
+
+            # 更新密碼
+            await UsersModel.filter(user_uid=current_user.user_uid).update(password=data.new_password)
+
+            return {"status": "success", "msg": "Successful update password."}
+
+        except Exception as e:
+            return {"status": "fail", "msg": "Fail to update password."}
+        
