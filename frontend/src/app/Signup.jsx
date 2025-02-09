@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Input } from "./components/Input";
 import { Button } from "./components/Button";
-import { useDispatch, useSelector } from "react-redux";
-import { setView, setAuth } from "../../store/authSlice";
+import { useDispatch } from "react-redux";
+import { setView } from "../../store/authSlice";
 import { Eye, EyeOff } from "lucide-react";
 import { UserBox } from "../../services/UserManager/UserBox";
 
@@ -52,10 +52,23 @@ export function SignupView() {
     "連江縣",
   ];
 
+ /*  const hashPassword = async (password) => {
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+      return hashHex;
+    } 
+  };
+  
+  const [hash, setHash] = useState(""); */
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log(formData);
+
       UserBox(
         "/create_user",
         {
@@ -70,7 +83,8 @@ export function SignupView() {
         false
       )
         .then((result) => {
-          console.log("Login successful!");
+          console.log("Rigste successful!");
+          console.log(result.data.message)
           setSuccessMessage("註冊成功！請前往登入頁面");
         })
         .catch((error) => {

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Input } from "./components/Input";
 import { Button } from "./components/Button";
-import { useDispatch, useSelector } from "react-redux";
-import { setView, setAuth } from "../../store/authSlice";
+import { useDispatch } from "react-redux";
+import { setView } from "../../store/authSlice";
 import { Eye, EyeOff } from "lucide-react";
 import { UserBox } from "../../services/UserManager/UserBox";
 
@@ -138,7 +138,7 @@ export function ForgotPasswordView() {
         >
           &larr;
         </button>
-        <h1 className="text-2xl font-bold text-center flex-1">忘記密碼</h1>
+        <h1 className="text-2xl font-bold text-center flex-1">Forgot Password</h1>
       </div>
       <form className="space-y-4">
         <Input

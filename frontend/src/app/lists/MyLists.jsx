@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Plus, Pencil, Trash } from "lucide-react";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
-import { Plus, Pencil, Trash } from "lucide-react";
 import { ListBox } from "../../../services/ListManager/ListBox";
 
 export default function MyList() {
@@ -87,11 +88,11 @@ export default function MyList() {
           list_name: newListData.name,
           description: newListData.description,
         },
-        true,
+        true
       )
         .then((result) => {
           console.log("Create_list successful!");
-          setRefreshKey(prevKey => prevKey + 1);
+          setRefreshKey((prevKey) => prevKey + 1);
           setIsAddingNew(false);
         })
         .catch((error) => {
@@ -148,14 +149,20 @@ export default function MyList() {
               </div>
             ) : (
               <>
-                <div>
+                <Link
+                  href={{
+                    pathname: `/lists/${list.name}`,
+                    query: { id: list.id },
+                  }}
+                  className="flex-1"
+                >
                   <span className="font-bold">{list.name}</span>
                   {list.description && (
                     <span className="text-gray-500 text-sm ml-2">
                       {list.description}
                     </span>
                   )}
-                </div>
+                </Link>
                 <div className="flex gap-2">
                   <Button
                     variant="secondary"

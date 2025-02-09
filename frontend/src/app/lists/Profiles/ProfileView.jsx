@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { setHomeView } from "../../../../store/homeSlice";
 import { Button } from "../../components/Button";
 import { Home } from "lucide-react";
+import { ProfilesBox } from "../../../../services/ProfilesManager/ProfilesBox";
 
 export function ProfileView() {
   const dispatch = useDispatch();
@@ -15,6 +16,27 @@ export function ProfileView() {
     address: "台北市",
     profile_picture_url: "",
   });
+
+  /* 
+  useEffect(() => {
+    ProfilesBox("/get_profile", {}, true)
+      .then((response) => {
+        if (response.data.length > 0) {
+          const formattedLists = response.data.map((item) => ({
+            name: item, // 設定 id
+            name: item.list_name, // 設定 name
+            description: item.description || "", // 設定 description（如果為 null 則給空字串）
+          }));
+          setMyLists(formattedLists);
+        } else {
+          setMyLists([]);
+          setErrorMessage(response.msg);
+        }
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+      });
+  }, []); */
 
   return (
     <div className="flex-1 ml-60 min-h-screen bg-gray-50 p-4">
@@ -60,7 +82,11 @@ export function ProfileView() {
             <Button onClick={() => dispatch(setHomeView("set-profile"))}>
               編輯個人檔案
             </Button>
-            <Button variant="secondary" className="px-8">
+            <Button
+              variant="secondary"
+              className="px-8"
+              onClick={() => dispatch(setHomeView("resetpassword"))}
+            >
               重設密碼
             </Button>
           </div>

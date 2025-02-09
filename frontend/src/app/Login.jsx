@@ -5,8 +5,8 @@ import { Input } from "./components/Input";
 import { Button } from "./components/Button";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { setView, setAuth } from "../../store/authSlice";
+import { useDispatch } from "react-redux";
+import { setView } from "../../store/authSlice";
 import { UserBox } from "../../services/UserManager/UserBox";
 
 export function LoginView() {
@@ -20,6 +20,7 @@ export function LoginView() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
+  //const argon2 = require("argon2"); //Argon2加密
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,6 +59,11 @@ export function LoginView() {
     console.log(formData);
     e.preventDefault();
     if (validateFeild()) {
+      /*const [hashpassword,setHashpassword]=useState("")
+      argon2
+        .hash(formData.password)
+        .then((hash) => setHashpassword(hash))
+        .catch((err) => console.error(err)); */
       UserBox(
         "/login_user",
         {

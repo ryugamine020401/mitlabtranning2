@@ -5,15 +5,28 @@ import { LogOut, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { ListsView } from "./ListsView";
 import { ProfileView } from "./Profiles/ProfileView";
+import { SetProfileView } from "./Profiles/SetProfileView";
+import { ResetPasswordView } from "./Profiles/ResetPasswordView";
 import { setView } from "../../../store/authSlice";
 import { setHomeView } from "../../../store/homeSlice";
+
 
 export default function HomeContainer() {
   const router = useRouter();
   const dispatch = useDispatch();
   const currentView = useSelector((state) => state.home.currentHomeView);
   const [hydrated, setHydrated] = useState(false); // 用來避免畫面閃爍
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedView = localStorage.getItem("homeView") || "lists";
+      dispatch(setHomeView(storedView));
+      setHydrated(true); // Hydration 完成
+    }
+  }, [dispatch]);
 
+  if (!hydrated) return null; // **避免 Hydration 錯誤，等到 useEffect 執行後才渲染**
+  
   const handleLogout = () => {
     localStorage.removeItem("token"); // 清除 token
     localStorage.removeItem("authView"); // 清除存儲的 authView
@@ -58,6 +71,9 @@ export default function HomeContainer() {
       {/* ListsContainer */}
       {currentView === "lists" && <ListsView />}
       {currentView === "profile" && <ProfileView />}
+      {currentView === "set-profile" && <SetProfileView />}
+      {currentView === "resetpassword" && <ResetPasswordView />}
+      
     </div>
   );
 }
