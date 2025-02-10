@@ -9,6 +9,10 @@ from schemas.ProductsSchema import *
 
 router = APIRouter()
 
+def correct_base64_padding(base64_str: str) -> str:
+    # 根據字串長度來補充適當的填充字符
+    return base64_str + "=" * (4 - len(base64_str) % 4) if len(base64_str) % 4 != 0 else base64_str
+
 class ProductsManager:
     @staticmethod
     @router.post("/get_product/")
@@ -17,10 +21,6 @@ class ProductsManager:
         獲取產品
         """
         try:
-            # 檢查資料完整性
-            if not data.f_list_id:
-                return {"status": "fail", "msg": "Fail to get product.", "data": []}
-
             # 查詢該清單是否存在
             user_lists = await ListsModel.filter(list_uid=data.f_list_id).first()
             if not user_lists:
@@ -59,10 +59,6 @@ class ProductsManager:
         新增產品
         """
         try:
-            # 確認產品資料完整性
-            if not all([data.product_name, data.product_barcode, data.product_number, data.expiry_date]):
-                return {"status": "fail", "msg": "Fail to create product."}
-
             # 確認清單是否存在且屬於當前用戶
             user_list = await ListsModel.filter(list_uid=data.f_list_id, f_user_id=current_user).first()
             if not user_list:
@@ -75,9 +71,10 @@ class ProductsManager:
 
             # 處理 Base64 編碼的圖片
             try:
+                data.product_image_url = correct_base64_padding(data.product_image_url)
                 image_data = base64.b64decode(data.product_image_url)  # 解碼 Base64 圖片
             except Exception as e:
-                return {"status": "fail", "msg": "Invalid Base64 image encoding."}
+                return {"status": "fail", "msg": "Invalid Base64 image encoding.", "e": str(e)}
 
             # 建立資料夾結構：resource/{user_uid}/{list_name}/
             folder_path = Path("resource") / str(current_user.user_uid) / str(user_list.list_name)
@@ -105,10 +102,7 @@ class ProductsManager:
                 description=data.description
             )
 
-            return {
-                "status": "success",
-                "msg": "Successful create product."
-            }
+            return {"status": "success", "msg": "Successful create product."}
 
         except Exception as e:
-            return {"status": "fail", "msg": "Fail to create product.", "e": str(e)}
+            return {"status": "fail", "msg": "Fail to create product."}

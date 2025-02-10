@@ -56,10 +56,6 @@ class ListsManager:
         新增清單
         """
         try:
-            # 檢查資料完整性
-            if not data.list_name:
-                return {"status": "fail", "msg": "Fail to create list."}
-
             # 檢查清單名稱是否已存在
             existing_list = await ListsModel.filter(f_user_id=current_user, list_name=data.list_name).first()
             if existing_list:
@@ -80,4 +76,55 @@ class ListsManager:
             return {"status": "success", "msg": "Successful create list."}
 
         except Exception as e:
-            return {"status": "fail", "msg": "Fail to create list.", "e": str(e)}
+            return {"status": "fail", "msg": "Fail to create list."}
+
+    @staticmethod
+    @router.post("/delete_list/")
+    async def delete_list(data: DeleteListSchema, current_user: UsersModel = Depends(get_current_user)):
+        """
+        提供已有帳號的使用者能刪除清單
+        """
+        try:
+            # 查找清單是否存在
+            user_list = await ListsModel.filter(list_uid=data.list_uid, f_user_id=current_user).first()
+            if not user_list:
+                return {"status": "fail", "msg": "Fail to delete list."}
+
+            # 刪除清單
+            await user_list.delete()
+            return {"status": "success", "msg": "Successful delete list."}
+
+        except Exception as e:
+            return {"status": "fail", "msg": "Fail to delete list."}
+        
+    @staticmethod
+    @router.post("/update_list")
+    async def update_list(data: UpdateListSchema, current_user: UsersModel = Depends(get_current_user)):
+        """
+        提供已有帳號的使用者能更新單一清單內容
+        """
+        try:
+            # 查找清單是否存在
+            user_list = await ListsModel.filter(list_uid=data.list_uid, f_user_id=current_user).first()
+            if not user_list:
+                return {"status": "fail", "msg": "Fail to update list."}
+
+            update_data = {}
+            # 若 list_name 與 list_uid 目前的 list_name 不同，則需要檢查該用戶是否已有相同 list_name
+            if data.list_name and data.list_name != user_list.list_name:
+                existing_list = await ListsModel.filter(list_name=data.list_name, f_user_id=current_user).first()
+                if existing_list:
+                    return {"status": "fail", "msg": "This list_name already exists."}
+                update_data["list_name"] = data.list_name  # 允許更新 list_name
+
+            # 更新 description
+            if data.description is not None:
+                update_data["description"] = data.description
+
+            await ListsModel.filter(list_uid=data.list_uid, f_user_id=current_user).update(**update_data)
+
+            return {"status": "success", "msg": "Successful update list."}
+
+        except Exception as e:
+            return {"status": "fail", "msg": "Fail to update list."}
+        
