@@ -75,31 +75,23 @@ class ProfilesManager:
         try:
             user_profile = await ProfilesModel.filter(f_user_uid=current_user).first()
             if not user_profile:
-                return {"status": "fail", "msg": "Fail to update profile.", "data": []}
+                return {"status": "fail", "msg": "Fail to update profile."}
 
             # 更新有變動的資料
             update_data = data.dict(exclude_unset=True)  # 排除沒有提供的欄位
 
-            # update_data = {}
-            # if data.name:
-            #     update_data["name"] = data.name
-            # if data.phone_number:
-            #     update_data["phone_number"] = data.phone_number
-            # if data.date_of_birth:
-            #     update_data["date_of_birth"] = data.date_of_birth
-            # if data.address:
-            #     update_data["address"] = data.address
-            # if data.profile_picture_url:
-            #     update_data["profile_picture_url"] = data.profile_picture_url
-            # if data.bio:
-            #     update_data["bio"] = data.bio
+            # 處理圖片 URL
+            try:
+                image_path = await handle_image_and_save(update_data["profile_picture_url"], str(current_user.user_uid), "profile")
+                update_data["profile_picture_url"] = image_path  # 更新圖片的 URL
+            except ValueError as e:
+                return {"status": "fail", "msg": "Fail to update profile."}
 
-            # 直接更新資料
-
+            # 更新資料
             if update_data:
                 await ProfilesModel.filter(f_user_uid=current_user).update(**update_data)
 
             return {"status": "success", "msg": "Successful update profile."}
         
         except Exception as e:
-            return {"status": "fail", "msg": "Fail to update profile.", "data": []}
+            return {"status": "fail", "msg": "Fail to update profile."}

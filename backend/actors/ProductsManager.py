@@ -9,10 +9,6 @@ from schemas.ProductsSchema import *
 
 router = APIRouter()
 
-def correct_base64_padding(base64_str: str) -> str:
-    # 根據字串長度來補充適當的填充字符
-    return base64_str + "=" * (4 - len(base64_str) % 4) if len(base64_str) % 4 != 0 else base64_str
-
 class ProductsManager:
     @staticmethod
     @router.post("/get_product/")
@@ -69,26 +65,11 @@ class ProductsManager:
             if existing_product:
                 return {"status": "fail", "msg": "This product with the same barcode and expiry date already exists."}
 
-            # 處理 Base64 編碼的圖片
+            # 處理圖片並儲存
             try:
-                data.product_image_url = correct_base64_padding(data.product_image_url)
-                image_data = base64.b64decode(data.product_image_url)  # 解碼 Base64 圖片
-            except Exception as e:
-                return {"status": "fail", "msg": "Invalid Base64 image encoding.", "e": str(e)}
-
-            # 建立資料夾結構：resource/{user_uid}/{list_name}/
-            folder_path = Path("resource") / str(current_user.user_uid) / str(user_list.list_name)
-
-            # 檢查資料夾是否存在，如果不存在則建立
-            if not folder_path.exists():
-                folder_path.mkdir(parents=True, exist_ok=True)
-
-            # 儲存圖片
-            unique_filename = f"{uuid4().hex}.jpg"  # 假設圖片儲存為 JPG 格式
-            image_path = folder_path / unique_filename
-
-            with open(image_path, "wb") as buffer:
-                buffer.write(image_data)
+                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_name)
+            except ValueError as e:
+                return {"status": "fail", "msg": "Fail to create product."}
 
             # 創建商品
             new_product = await ProductsModel.create(
