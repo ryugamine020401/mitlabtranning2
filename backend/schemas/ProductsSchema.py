@@ -19,12 +19,12 @@ class CreateProductSchema(BaseSchema):
 # 刪除產品請求模型
 class DeleteProductSchema(BaseSchema):
     f_list_id: str = Field(..., max_length=36)
-    product_id: str = Field(..., max_length=36)
+    id: str = Field(..., max_length=36)
 
 # 更新產品請求模型
 class UpdateProductSchema(BaseSchema):
     f_list_id: str = Field(..., max_length=36)
-    product_id: str = Field(..., max_length=36)
+    id: str = Field(..., max_length=36)
     product_name: str = Field(..., max_length=100)
     product_barcode: str = Field(..., max_length=13)
     product_image_url: str = Field(..., ) # max_length=2850000

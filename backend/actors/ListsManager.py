@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from datetime import datetime
-import random, string
+import random, string, shutil
 
 from utils import *
 from models import UsersModel, ListsModel
@@ -89,6 +89,11 @@ class ListsManager:
             user_list = await ListsModel.filter(list_uid=data.list_uid, f_user_id=current_user).first()
             if not user_list:
                 return {"status": "fail", "msg": "Fail to delete list."}
+            
+            # 刪除與該清單相關的產品圖片
+            folder_path = Path("resource") / str(current_user.user_uid) / user_list.list_name
+            if folder_path.exists():
+                shutil.rmtree(folder_path)  # 移除整個資料夾及其內容
 
             # 刪除清單
             await user_list.delete()

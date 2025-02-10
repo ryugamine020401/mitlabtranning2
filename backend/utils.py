@@ -2,10 +2,9 @@ from fastapi import HTTPException, Header
 from jose import jwt, JWTError
 from models import UsersModel
 from dotenv import load_dotenv
-import os
 from pathlib import Path
 from uuid import uuid4
-import base64
+import os, base64
 
 # 載入 .env 檔案
 load_dotenv()
@@ -61,6 +60,7 @@ async def handle_image_and_save(image_url: str, user_uid: str, list_name: str) -
         # 處理 Base64 編碼的圖片
         image_url = correct_base64_padding(image_url)
         image_data = base64.b64decode(image_url)  # 解碼 Base64 圖片
+        # print(f"image_data: {image_data}")
     except Exception as e:
         raise ValueError(f"Invalid Base64 image encoding: {str(e)}")
 
@@ -74,6 +74,7 @@ async def handle_image_and_save(image_url: str, user_uid: str, list_name: str) -
     # 儲存圖片
     unique_filename = f"{uuid4().hex}.jpg"  # 假設圖片儲存為 JPG 格式
     image_path = folder_path / unique_filename
+    # print(f"image_path: {image_path}")
 
     with open(image_path, "wb") as buffer:
         buffer.write(image_data)
