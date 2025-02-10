@@ -11,12 +11,11 @@ router = APIRouter()
 
 async def get_next_id(table) -> str:
     """
-    查詢資料庫中最大的 id，並返回下一個 id
+    直接查詢資料庫中最大的 id，並返回下一個 id
     """
-    last_item = await table.all().order_by('-id').first()  # 查詢最大的 id
-    if last_item:
-        return str(int(last_item.id) + 1)
-    return 1  # 如果沒有記錄，從 1 開始
+    max_id = await table.all().values_list("id", flat=True)  # 取得所有 id
+    max_id = max(map(int, max_id), default=0)  # 找出最大 id，確保是整數
+    return str(max_id + 1)  # 返回下一個 ID
 
 async def generate_unique_user_uid() -> str:
     """
