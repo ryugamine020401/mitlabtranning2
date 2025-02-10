@@ -9,24 +9,36 @@ import { SetProfileView } from "./Profiles/SetProfileView";
 import { ResetPasswordView } from "./Profiles/ResetPasswordView";
 import { setView } from "../../../store/authSlice";
 import { setHomeView } from "../../../store/homeSlice";
-
+import { ProfilesBox } from "../../../services/ProfilesManager/ProfilesBox";
 
 export default function HomeContainer() {
   const router = useRouter();
   const dispatch = useDispatch();
   const currentView = useSelector((state) => state.home.currentHomeView);
   const [hydrated, setHydrated] = useState(false); // 用來避免畫面閃爍
-  
+  const [Data, setData] = useState({ name: "", profile_url: "" });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedView = localStorage.getItem("homeView") || "lists";
-      dispatch(setHomeView(storedView));
-      setHydrated(true); // Hydration 完成
+      ProfilesBox("/get_profile/", {}, true)
+        .then((response) => {
+          if (response.data.length > 0) {
+            setData(response.data[0]);
+            dispatch(setHomeView(storedView));
+            setHydrated(true); // Hydration 完成
+          } else {
+            setErrorMessage(response.msg);
+          }
+        })
+        .catch((error) => {
+          setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+        });
     }
   }, [dispatch]);
 
   if (!hydrated) return null; // **避免 Hydration 錯誤，等到 useEffect 執行後才渲染**
-  
+
   const handleLogout = () => {
     localStorage.removeItem("token"); // 清除 token
     localStorage.removeItem("authView"); // 清除存儲的 authView
@@ -42,12 +54,12 @@ export default function HomeContainer() {
           <div className="flex flex-col items-center mb-8">
             <div className="w-20 h-20 rounded-full bg-gray-200 mb-4">
               <img
-                src="/file.svg"
+                src={Data.profile_url ? Data.profile_url : "/file.svg"}
                 alt="Profile"
                 className="w-full h-full rounded-full object-cover"
               />
             </div>
-            <span className="text-lg font-medium">Name</span>
+            <span className="text-lg font-medium">{Data.name}</span>
           </div>
           <nav className="flex-1">
             <div
@@ -73,7 +85,6 @@ export default function HomeContainer() {
       {currentView === "profile" && <ProfileView />}
       {currentView === "set-profile" && <SetProfileView />}
       {currentView === "resetpassword" && <ResetPasswordView />}
-      
     </div>
   );
 }

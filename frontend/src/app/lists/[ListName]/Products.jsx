@@ -159,16 +159,16 @@ export default function ListProduct() {
   const handleConfirmAdd = () => {
     if (validateForm(newProduct)) {
         console.log({
-            f_list_id: listid,
+            /* f_list_id: listid,
             product_name: newProduct.product_name,
-            product_barcode: newProduct.product_barcode,
+            product_barcode: newProduct.product_barcode, */
             product_image_url: newProduct.product_image_url,
-            product_number: newProduct.product_number,
+            /* product_number: newProduct.product_number,
             expiry_date: newProduct.expire_date,
-            description: newProduct.description,
+            description: newProduct.description, */
           })
       ProductsBox(
-        "/create_product",
+        "/create_product/",
         {
           f_list_id: listid,
           product_name: newProduct.product_name,
@@ -176,7 +176,7 @@ export default function ListProduct() {
           product_image_url: newProduct.product_image_url,
           product_number: newProduct.product_number,
           expiry_date: newProduct.expire_date,
-          //description: newProduct.description,
+          description: newProduct.description,
         },
         true,
       )

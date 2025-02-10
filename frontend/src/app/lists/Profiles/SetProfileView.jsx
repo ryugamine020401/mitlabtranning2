@@ -58,8 +58,16 @@ export function SetProfileView() {
   };
 
   const handleFileSelect = (file) => {
-    console.log("Selected file:", file);
+    //console.log("Selected file:", file);
     // Handle file upload
+  };
+  const validateForm = () => {
+    const newErrors = {};
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email格式不正確";
+    }
+    
+    return Object.keys(newErrors).length === 0;
   };
 
   return (
@@ -117,7 +125,6 @@ export function SetProfileView() {
             label="Date of birth"
             name="birthDate"
             type="date"
-            placeholder="(YYYY/MM/DD)"
             value={formData.birthDate}
             onChange={handleChange}
           />

@@ -23,7 +23,7 @@ export const UserBox = (endpoint, data, needAuth = false) => {
       //console.log(firstData.msg)
       throw new Error(response.data.msg);
     }
-    console.log(firstData.msg)
+    //console.log(firstData.msg)
     return response.data; // 成功時回傳資料
   })
   .catch((error) => {

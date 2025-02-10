@@ -70,7 +70,7 @@ export function SignupView() {
     if (validateForm()) {
 
       UserBox(
-        "/create_user",
+        "/create_user/",
         {
           username: formData.username,
           email: formData.email,
@@ -84,7 +84,7 @@ export function SignupView() {
       )
         .then((result) => {
           console.log("Rigste successful!");
-          console.log(result.data.message)
+          //console.log(result.data.message)
           setSuccessMessage("註冊成功！請前往登入頁面");
         })
         .catch((error) => {
@@ -135,7 +135,7 @@ export function SignupView() {
       newErrors.address = "地址為必填";
     }
     setErrors(newErrors);
-    console.log(errors);
+    //console.log(errors);
     /*setErrors((prev) => ({
       ...prev,
       [name]: error,
