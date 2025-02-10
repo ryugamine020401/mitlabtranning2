@@ -20,7 +20,6 @@ export function LoginView() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
-  //const argon2 = require("argon2"); //Argon2加密
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,23 +46,12 @@ export function LoginView() {
       newErrors.password = "password為必填";
     }
     setErrors(newErrors);
-    console.log(errors);
-    /*setErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }))*/
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
-    console.log(formData);
     e.preventDefault();
     if (validateFeild()) {
-      /*const [hashpassword,setHashpassword]=useState("")
-      argon2
-        .hash(formData.password)
-        .then((hash) => setHashpassword(hash))
-        .catch((err) => console.error(err)); */
       UserBox(
         "/login_user",
         {

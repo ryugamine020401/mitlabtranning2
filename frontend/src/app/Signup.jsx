@@ -52,19 +52,6 @@ export function SignupView() {
     "連江縣",
   ];
 
- /*  const hashPassword = async (password) => {
-    if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
-      return hashHex;
-    } 
-  };
-  
-  const [hash, setHash] = useState(""); */
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
@@ -83,18 +70,19 @@ export function SignupView() {
         false
       )
         .then((result) => {
-          console.log("Rigste successful!");
+          console.log("register successful!");
           //console.log(result.data.message)
           setSuccessMessage("註冊成功！請前往登入頁面");
         })
         .catch((error) => {
           setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
-          console.log("Login failed:", error.message);
+          console.log("register failed:", error.message);
         });
     }
   };
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setErrorMessage("");
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -102,6 +90,8 @@ export function SignupView() {
   };
 
   const validateForm = () => {
+    setErrorMessage("");
+    setSuccessMessage("");
     const newErrors = {};
     if (!formData.name.trim()) {
       newErrors.name = "name為必填";
@@ -134,12 +124,8 @@ export function SignupView() {
     if (!formData.address.trim()) {
       newErrors.address = "地址為必填";
     }
+    
     setErrors(newErrors);
-    //console.log(errors);
-    /*setErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }))*/
     return Object.keys(newErrors).length === 0;
   };
 

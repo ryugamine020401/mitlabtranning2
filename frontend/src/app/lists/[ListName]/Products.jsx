@@ -45,6 +45,7 @@ export default function ListProduct() {
     { id: 3, name: "Name", role: "member" },
   ]);
   const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
+  const [successMessage, setSuccessMessage] = useState(""); // 儲存成功訊息
   const [refreshKey, setRefreshKey] = useState(0); // 用來觸發 `useEffect`
   const [listid, setListid] = useState(null);
   const [listname, setListName] = useState("");
@@ -68,7 +69,7 @@ export default function ListProduct() {
             product_barcode: item.product_barcode,
             product_number: item.product_number,
             product_image_url: item.product_image_url,
-            expire_date: item.expire_date,
+            expire_date: item.expiry_date,
             description: item.description || "",
             checked: false,
           }));
@@ -81,7 +82,7 @@ export default function ListProduct() {
       .catch((error) => {
         setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
       });
-  }, []);
+  }, [refreshKey]);
 
   const handleCheck = (id) => {
     setProducts((prevProducts) =>
@@ -158,15 +159,6 @@ export default function ListProduct() {
 
   const handleConfirmAdd = () => {
     if (validateForm(newProduct)) {
-        console.log({
-            /* f_list_id: listid,
-            product_name: newProduct.product_name,
-            product_barcode: newProduct.product_barcode, */
-            product_image_url: newProduct.product_image_url,
-            /* product_number: newProduct.product_number,
-            expiry_date: newProduct.expire_date,
-            description: newProduct.description, */
-          })
       ProductsBox(
         "/create_product/",
         {
@@ -178,15 +170,17 @@ export default function ListProduct() {
           expiry_date: newProduct.expire_date,
           description: newProduct.description,
         },
-        true,
+        true
       )
         .then((response) => {
-          if (response.data) {
-            setProducts([...products, { id: response.data.id, ...newProduct }]);
-            handleCancelAdd();
-          } else {
-            setErrorMessage(response.msg);
-          }
+          setSuccessMessage("新增成功！");
+
+          setTimeout(() => {
+            setSuccessMessage("");
+            setRefreshKey((prevKey) => prevKey + 1);
+          }, 2000);
+
+          handleCancelAdd();
         })
         .catch((error) => {
           setErrorMessage(error.message);
@@ -305,6 +299,7 @@ export default function ListProduct() {
             <h2 className="text-xl font-semibold mb-4">清單名稱</h2>
             {/* API錯誤訊息顯示 */}
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+            
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
@@ -362,7 +357,9 @@ export default function ListProduct() {
                         ) : (
                           <img
                             src={
-                              product.product_image_url || "/placeholder.svg"
+                              product.product_image_url
+                                ? `${process.env.NEXT_PUBLIC_API_URL}/${product.product_image_url}`
+                                : "/file.svg"
                             }
                             alt={product.product_name}
                             className="h-10 w-10 rounded-full object-cover"
@@ -566,6 +563,10 @@ export default function ListProduct() {
                 </tbody>
               </table>
             </div>
+            {/* 成功訊息顯示 */}
+            {successMessage && (
+              <p className="text-green-500">{successMessage}</p>
+            )}
             {!isAddingNew && (
               <div className="mt-4">
                 <Button onClick={handleAddNew} className="w-full">

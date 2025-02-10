@@ -6,6 +6,7 @@ import { Button } from "../../components/Button";
 import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
 import { setHomeView } from "../../../../store/homeSlice";
+import { UserBox } from "../../../../services/UserManager/UserBox";
 
 export function ResetPasswordView() {
   const dispatch = useDispatch();
@@ -46,7 +47,7 @@ export function ResetPasswordView() {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email格式不正確";
     }
-    if (!formData.old) {
+    if (!formData.oldpassword) {
       newErrors.oldpassword = "Old password為必填";
     }
     if (!formData.password) {
@@ -57,27 +58,38 @@ export function ResetPasswordView() {
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "密碼不一致";
     }
+    if (formData.oldpassword && formData.password && formData.oldpassword === formData.password) {
+      newErrors.password = "舊密碼不可與新密碼相同";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // 處理驗證密碼邏輯
-    dispatch(setView("login"));
-  };
-
-  // 假設驗證成功
-  const handleVerify = () => {
-    // 處理驗證邏輯
-    //const isValid = validateField(formData);
     if (validateField()) {
+      UserBox(
+        "/updatePW_user/",
+        {
+          username: formData.username,
+          email: formData.email,
+          old_password: formData.oldpassword,
+          new_password: formData.confirmPassword,
+        },
+        true,
+      )
+        .then((result) => {
+          console.log("Reset successful!");
+          setSuccessMessage("重設成功！");
+        })
+        .catch((error) => {
+          setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+          console.log("register failed:", error.message);
+        });
     }
   };
 
-  const handleResetPassword = (e) => {
-
-  };
+  const handleResetPassword = (e) => {};
 
   return (
     <div className="flex-1 ml-60 min-h-screen bg-gray-50 p-4">
@@ -172,7 +184,7 @@ export function ResetPasswordView() {
             </button>
           </div>
           <div className="flex gap-4 justify-center pt-4">
-            <Button onClick={handleResetPassword}>Reset Password</Button>
+            <Button onClick={handleSubmit}>Reset Password</Button>
             <Button
               variant="secondary"
               className="px-8"

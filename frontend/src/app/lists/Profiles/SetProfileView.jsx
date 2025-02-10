@@ -1,24 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { FileUpload } from "../FileUpload";
 import Link from "next/link";
 import { setHomeView } from "../../../../store/homeSlice";
+import { ProfilesBox } from "../../../../services/ProfilesManager/ProfilesBox";
 
 export function SetProfileView() {
   const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    username: "",
-    city: "",
-    address: "",
-    phone: "",
-    birthDate: "",
-  });
+  const [preformData, setPreFormData] = useState({});
+  const [formData, setFormData] = useState({});
   const taiwanCities = [
     "基隆市",
     "臺北市",
@@ -44,6 +38,42 @@ export function SetProfileView() {
     "連江縣",
   ];
 
+  useEffect(() => {
+    ProfilesBox("/get_profile/", {}, true)
+      .then((response) => {
+        if (response.data.length > 0) {
+          const fullAddress = response.data[0].address || "";
+          const cityMatch = fullAddress.match(
+            /^(台北市|新北市|桃園市|台中市|台南市|高雄市|基隆市|新竹市|嘉義市|彰化縣|南投縣|雲林縣|嘉義縣|屏東縣|宜蘭縣|花蓮縣|台東縣|澎湖縣|金門縣|連江縣)/
+          );
+          const extractedCity = cityMatch ? cityMatch[0] : "";
+
+          /* setPreFormData({
+            name: response.data[0].name,
+            phone_number: response.data[0].phone_number,
+            date_of_birth: response.data[0].date_of_birth,
+            address: fullAddress.replace(extractedCity, "").trim(), // 只留下詳細地址
+            city: extractedCity, // 縣市名稱
+            profile_picture_url: response.data[0].profile_picture_url,
+          }); */
+
+          // 預設 formData 也使用抓取到的數據
+          setFormData({
+            name: response.data[0].name,
+            email: response.data[0].email,
+            city: extractedCity,
+            address: fullAddress.replace(extractedCity, "").trim(),
+            phone: response.data[0].phone_number,
+            birthDate: response.data[0].date_of_birth,
+            profile_picture_url: response.data[0].profile_picture_url,
+          });
+        }
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+      });
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -54,7 +84,28 @@ export function SetProfileView() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission
+    if (validateForm()) {
+      ProfilesBox(
+        "/update_profile/",
+        {
+          name: formData.name,
+          phone_number: formData.phone,
+          date_of_birth: formData.birthDate,
+          address: `${formData.city}${formData.address}`,
+          profile_picture_url: formData.profile_picture_url,
+          bio: "",
+        },
+        true,
+      )
+        .then((result) => {
+          console.log("Reset profile successful!");
+          setSuccessMessage("編輯成功");
+        })
+        .catch((error) => {
+          setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+          console.log("Verify failed:", error.message);
+        });
+    }
   };
 
   const handleFileSelect = (file) => {
@@ -66,7 +117,7 @@ export function SetProfileView() {
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email格式不正確";
     }
-    
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -78,15 +129,7 @@ export function SetProfileView() {
           <Input
             label="Name"
             name="name"
-            placeholder="Name"
             value={formData.name}
-            onChange={handleChange}
-          />
-          <Input
-            label="Username"
-            name="username"
-            placeholder="username"
-            value={formData.username}
             onChange={handleChange}
           />
           <label className="block text-sm font-medium text-gray-700">

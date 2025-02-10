@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setHomeView } from "../../../../store/homeSlice";
 import { Button } from "../../components/Button";
@@ -9,34 +9,30 @@ import { ProfilesBox } from "../../../../services/ProfilesManager/ProfilesBox";
 
 export function ProfileView() {
   const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    name: "Ja",
-    phone_number: "0901234567",
-    date_of_birth: "2003/01/01",
-    address: "台北市",
-    profile_picture_url: "",
-  });
+  const [formData, setFormData] = useState({});
 
-  /* 
   useEffect(() => {
     ProfilesBox("/get_profile", {}, true)
       .then((response) => {
         if (response.data.length > 0) {
-          const formattedLists = response.data.map((item) => ({
-            name: item, // 設定 id
-            name: item.list_name, // 設定 name
-            description: item.description || "", // 設定 description（如果為 null 則給空字串）
-          }));
-          setMyLists(formattedLists);
+          setFormData(
+            {
+              name: response.data[0].name,
+              phone_number: response.data[0].phone_number,
+              date_of_birth: response.data[0].date_of_birth,
+              address: response.data[0].address,
+              profile_picture_url: response.data[0].profile_picture_url,
+            }
+          )
         } else {
-          setMyLists([]);
+          setFormData([]);
           setErrorMessage(response.msg);
         }
       })
       .catch((error) => {
         setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
       });
-  }, []); */
+  }, []);
 
   return (
     <div className="flex-1 ml-60 min-h-screen bg-gray-50 p-4">
@@ -54,7 +50,7 @@ export function ProfileView() {
           <div className="flex flex-col items-center">
             <div className="w-32 h-32 rounded-full bg-gray-200 mb-4 overflow-hidden">
               <img
-                src="/user.svg"
+                src="/file.svg"
                 alt="Profile"
                 className="w-full h-full object-cover"
               />

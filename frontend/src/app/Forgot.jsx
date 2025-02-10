@@ -31,7 +31,7 @@ export function ForgotPasswordView() {
     if (name === "verificationCode" && value.length > 6) {
       return;
     }
-
+    
     setFormData((prev) => {
       const updatedFormData = {
         ...prev,
@@ -57,6 +57,8 @@ export function ForgotPasswordView() {
   };
 
   const validateField2 = () => {
+    setErrorMessage("");
+    setSuccessMessage("");
     const newErrors = {};
     if (!formData.verificationCode) {
       newErrors.verificationCode = "請輸入驗證碼";
@@ -75,11 +77,6 @@ export function ForgotPasswordView() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // 處理驗證密碼邏輯
-    dispatch(setView("login"));
-  };
 
   // 假設驗證成功
   const handleVerify = () => {
@@ -96,6 +93,7 @@ export function ForgotPasswordView() {
       )
         .then((result) => {
           console.log("Verify successful!");
+          setSuccessMessage("驗證成功！已發送驗證碼")
           setIsVerified(true); // 驗證成功後，解鎖按鈕
         })
         .catch((error) => {
@@ -105,7 +103,7 @@ export function ForgotPasswordView() {
     }
   };
 
-  const handleResetPassword = (e) => {
+  const handleSubmit = (e) => {
     if (!isVerified) return; // 確保只有通過驗證後才能執行
     if (validateField2()) {
       UserBox(
@@ -215,7 +213,7 @@ export function ForgotPasswordView() {
           type="button"
           className="w-full"
           disabled={!isVerified}
-          onClick={handleResetPassword}
+          onClick={handleSubmit}
         >
           Reset Password
         </Button>
