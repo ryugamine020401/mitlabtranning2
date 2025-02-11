@@ -4,7 +4,7 @@ from typing import Optional
 
 # 新增清單共用者請求模型
 class CreateViewerPermissionSchema(BaseSchema):
-    f_viewer_id: str = Field(..., max_length=36)
+    email: str = Field(..., max_length=320)
     f_list_id: str = Field(..., max_length=36)
 
 # 刪除清單共用者請求模型

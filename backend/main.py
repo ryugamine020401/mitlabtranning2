@@ -4,7 +4,7 @@ from tortoise.contrib.fastapi import register_tortoise
 import config
 
 from utils import *
-from actors import users_manager_router, profiles_manager_router, lists_manager_router, products_manager_router
+from actors import users_manager_router, profiles_manager_router, lists_manager_router, products_manager_router, permissions_manager_router
 
 
 app = FastAPI()
@@ -13,6 +13,7 @@ app.include_router(users_manager_router, prefix="/api/UsersManager", tags=["User
 app.include_router(profiles_manager_router, prefix="/api/ProfilesManager", tags=["Profiles Manager"])
 app.include_router(lists_manager_router, prefix="/api/ListsManager", tags=["Lists Manager"])
 app.include_router(products_manager_router, prefix="/api/ProductsManager", tags=["Products Manager"])
+app.include_router(permissions_manager_router, prefix="/api/ListPermissionsManager", tags=["List PermissionsManager Manager"])
 
 
 register_tortoise(
