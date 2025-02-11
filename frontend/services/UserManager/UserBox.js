@@ -3,8 +3,10 @@ import axios from "axios";
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/UsersManager`;
 
 export const UserBox = (endpoint, data, needAuth = false) => {
+  //console.log(API_URL)
   // 取得 token（若需要）
   const token = needAuth ? localStorage.getItem("token") : null;
+  console.log("API_URL:", API_URL);
 
   return axios.post(
     `${API_URL}${endpoint}`, // 組合 API URL
@@ -15,6 +17,7 @@ export const UserBox = (endpoint, data, needAuth = false) => {
         "Content-Type": "application/json",
       }
     }
+
   )
   
   .then((response) => {
@@ -27,6 +30,7 @@ export const UserBox = (endpoint, data, needAuth = false) => {
     return response.data; // 成功時回傳資料
   })
   .catch((error) => {
+    console.log("API_URL:", API_URL);
     console.error("API 請求錯誤:", error.response?.data?.msg || error.message);
     throw error;
   });

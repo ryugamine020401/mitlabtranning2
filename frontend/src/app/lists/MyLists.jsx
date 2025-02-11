@@ -19,7 +19,7 @@ export default function MyList() {
   const [refreshKey, setRefreshKey] = useState(0); // 用來觸發 `useEffect`
 
   useEffect(() => {
-    ListBox("/get_list", {}, true)
+    ListBox("/get_list/", {}, true)
       .then((response) => {
         if (response.data.length > 0) {
           const formattedLists = response.data.map((item) => ({
@@ -83,7 +83,7 @@ export default function MyList() {
   const handleSaveNew = () => {
     if (validateForm(newListData)) {
       ListBox(
-        "/create_list",
+        "/create_list/",
         {
           list_name: newListData.name,
           description: newListData.description,

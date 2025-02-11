@@ -24,6 +24,7 @@ export function FileUpload({
         const base64String = reader.result;
         setPreview(base64String);
         onFileSelect?.(base64String); // 傳遞 Base64 給父元件
+        
       };
 
       reader.readAsDataURL(file); // 讀取檔案並轉為 Base64

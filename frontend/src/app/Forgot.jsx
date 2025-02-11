@@ -84,7 +84,7 @@ export function ForgotPasswordView() {
     //const isValid = validateField(formData);
     if (validateField()) {
       UserBox(
-        "/forgetPW_user",
+        "/forgetPW_user/",
         {
           username: formData.username,
           email: formData.email,

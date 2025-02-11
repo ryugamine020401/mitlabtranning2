@@ -10,9 +10,10 @@ import { ProfilesBox } from "../../../../services/ProfilesManager/ProfilesBox";
 export function ProfileView() {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({});
+  const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
 
   useEffect(() => {
-    ProfilesBox("/get_profile", {}, true)
+    ProfilesBox("/get_profile/", {}, true)
       .then((response) => {
         if (response.data.length > 0) {
           setFormData(

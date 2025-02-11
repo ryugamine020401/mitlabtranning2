@@ -12,7 +12,15 @@ import { ProfilesBox } from "../../../../services/ProfilesManager/ProfilesBox";
 export function SetProfileView() {
   const dispatch = useDispatch();
   const [preformData, setPreFormData] = useState({});
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    city: "",
+    address: "",
+    phone: "",
+    birthDate: "",
+    profile_picture_url: "",
+  });
   const taiwanCities = [
     "基隆市",
     "臺北市",
@@ -47,17 +55,6 @@ export function SetProfileView() {
             /^(台北市|新北市|桃園市|台中市|台南市|高雄市|基隆市|新竹市|嘉義市|彰化縣|南投縣|雲林縣|嘉義縣|屏東縣|宜蘭縣|花蓮縣|台東縣|澎湖縣|金門縣|連江縣)/
           );
           const extractedCity = cityMatch ? cityMatch[0] : "";
-
-          /* setPreFormData({
-            name: response.data[0].name,
-            phone_number: response.data[0].phone_number,
-            date_of_birth: response.data[0].date_of_birth,
-            address: fullAddress.replace(extractedCity, "").trim(), // 只留下詳細地址
-            city: extractedCity, // 縣市名稱
-            profile_picture_url: response.data[0].profile_picture_url,
-          }); */
-
-          // 預設 formData 也使用抓取到的數據
           setFormData({
             name: response.data[0].name,
             email: response.data[0].email,
@@ -95,7 +92,7 @@ export function SetProfileView() {
           profile_picture_url: formData.profile_picture_url,
           bio: "",
         },
-        true,
+        true
       )
         .then((result) => {
           console.log("Reset profile successful!");
@@ -171,9 +168,19 @@ export function SetProfileView() {
             value={formData.birthDate}
             onChange={handleChange}
           />
-          <FileUpload label="Profile picture" onFileSelect={handleFileSelect} />
+          {/*<FileUpload label="Profile picture" onFileSelect={handleFileSelect} />*/}
+          <FileUpload
+            onFileSelect={(base64) => {
+              setFormData((prev) => ({
+                ...prev,
+                product_image_url: base64, // 存儲 Base64 字串
+              }));
+            }}
+          />
           <div className="flex gap-4 justify-center pt-4">
-            <Button type="submit">Update</Button>
+            <Button type="submit" onClick={handleSubmit}>
+              Update
+            </Button>
             <Button
               type="button"
               variant="secondary"

@@ -59,8 +59,10 @@ export default function ListProduct() {
     const id = urlParams.get("id") || ""; // 獲取 id
     if (id) setListid(id);
     if (Name) setListName(Name);
+    setErrorMessage("")
+    setSuccessMessage("")
 
-    ProductsBox("/get_product", { f_list_id: id }, true)
+    ProductsBox("/get_product/", { f_list_id: id }, true)
       .then((response) => {
         if (response.data.length > 0) {
           const formattedProduct = response.data.map((item) => ({
@@ -159,6 +161,7 @@ export default function ListProduct() {
 
   const handleConfirmAdd = () => {
     if (validateForm(newProduct)) {
+      console.log(newProduct.product_image_url)
       ProductsBox(
         "/create_product/",
         {
