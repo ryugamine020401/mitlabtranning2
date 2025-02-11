@@ -103,7 +103,7 @@ class ListsManager:
             return {"status": "fail", "msg": "Fail to delete list."}
         
     @staticmethod
-    @router.post("/update_list")
+    @router.post("/update_list/")
     async def update_list(data: UpdateListSchema, current_user: UsersModel = Depends(get_current_user)):
         """
         提供已有帳號的使用者能更新單一清單內容
