@@ -1,3 +1,6 @@
 *.sh
 db
 nginx
+*.crt
+*.key
+*.txt
