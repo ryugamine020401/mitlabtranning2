@@ -67,7 +67,7 @@ class ProductsManager:
 
             # 處理圖片並儲存
             try:
-                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_name)
+                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_uid)
             except ValueError as e:
                 return {"status": "fail", "msg": "Fail to create product."}
 
@@ -105,11 +105,10 @@ class ProductsManager:
             if not product:
                 return {"status": "fail", "msg": "Fail to delete product."}
             
-            # 刪除產品的圖片資料夾
-            old_image_path = Path("/home/kid/mitlabtranning2/backend/") / product.product_image_url
-            print(f"old_image_path: {old_image_path}")
-            old_image_path.unlink()
-            print(f"Deleted: {old_image_path}")
+            # 刪除產品的圖片檔案
+            old_image_path = Path("/app") / product.product_image_url
+            if old_image_path.exists():
+                old_image_path.unlink()
 
             # 刪除產品
             await product.delete()
@@ -117,7 +116,6 @@ class ProductsManager:
             return {"status": "success", "msg": "Successful delete product."}
 
         except Exception as e:
-            print(f"e {str(e)}")
             return {"status": "fail", "msg": "Fail to delete product."}
         
     @router.post("/update_product/")
@@ -153,17 +151,16 @@ class ProductsManager:
             
             # 處理圖片並儲存
             try:
-                if data.product_image_url != product.product_image_url:
-                    # 刪除舊的圖片檔案
-                    old_image_path = Path("backend") / product.product_image_url
-                    print(f"old_image_path: {old_image_path}")
-                    if old_image_path.exists():
-                        old_image_path.unlink()  # 刪除舊圖片檔案
-                    
-                    # 儲存新的圖片並更新路徑
-                    image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_name)
-                    update_data["product_image_url"] = image_path  # 更新為新的圖片路徑
-            except ValueError as e:
+                # 刪除舊的圖片檔案
+                old_image_path = Path("/app") / product.product_image_url
+                if old_image_path.exists():
+                    old_image_path.unlink()
+                
+                # 儲存新的圖片並更新路徑
+                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_uid)
+                update_data["product_image_url"] = image_path  # 更新為新的圖片路徑
+                
+            except Exception as e:
                 return {"status": "fail", "msg": "Fail to update product."}
             
             # 更新產品資料庫

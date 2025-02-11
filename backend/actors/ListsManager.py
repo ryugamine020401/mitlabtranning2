@@ -91,7 +91,7 @@ class ListsManager:
                 return {"status": "fail", "msg": "Fail to delete list."}
             
             # 刪除與該清單相關的產品圖片
-            folder_path = Path("resource") / str(current_user.user_uid) / user_list.list_name
+            folder_path = Path("/app") / str(current_user.user_uid) / user_list.list_name
             if folder_path.exists():
                 shutil.rmtree(folder_path)  # 移除整個資料夾及其內容
 
