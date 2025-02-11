@@ -11,12 +11,11 @@ router = APIRouter()
 
 async def get_next_id(table) -> str:
     """
-    查詢資料庫中最大的 id，並返回下一個 id
+    直接查詢資料庫中最大的 id，並返回下一個 id
     """
-    last_item = await table.all().order_by('-id').first()  # 查詢最大的 id
-    if last_item:
-        return str(int(last_item.id) + 1)
-    return 1  # 如果沒有記錄，從 1 開始
+    max_id = await table.all().values_list("id", flat=True)  # 取得所有 id
+    max_id = max(map(int, max_id), default=0)  # 找出最大 id，確保是整數
+    return str(max_id + 1)  # 返回下一個 ID
 
 async def generate_unique_user_uid() -> str:
     """
@@ -79,10 +78,6 @@ class UsersManager:
         使用者註冊
         """
         try:
-            # 檢查資料完整性
-            if not all([data.username, data.email, data.password, data.name, data.phone_number, data.date_of_birth, data.address]):
-                return {"status": "fail", "msg": "Fail to create user.", "data": []}
-
             # 檢查 email 是否已註冊
             existing_email = await UsersModel.filter(email=data.email).first()
             if existing_email:
@@ -112,7 +107,7 @@ class UsersManager:
             # 創建 profile
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(
-                    f"{FRONTEND_URL}/api/create_profile/",  # FastAPI 伺服器網址
+                    f"{FRONTEND_URL}/api/ProfilesManager/create_profile/",  # FastAPI 伺服器網址
                     json={
                         "f_user_id": user.user_uid,
                         "name": data.name,
@@ -139,10 +134,6 @@ class UsersManager:
         使用者登入
         """
         try:
-            # 檢查資料完整性
-            if not all([data.username, data.email, data.password]):
-                return {"status": "fail", "msg": "Fail to login.", "data": []}
-
             # 查詢用戶，檢查 username 是否存在
             user = await UsersModel.filter(username=data.username).first()
             if not user:
@@ -169,10 +160,6 @@ class UsersManager:
         使用者忘記密碼，發送驗證碼至郵箱
         """
         try:
-            # 確保資料完整性
-            if not data.username or not data.email:
-                return {"status": "fail", "msg": "Incorrect information or account does not exist."}
-            
             # 查詢用戶
             user = await UsersModel.filter(username=data.username, email=data.email).first()
             if not user:
@@ -198,10 +185,6 @@ class UsersManager:
         使用者重設密碼
         """
         try:
-            # 確保資料完整性
-            if not all([data.username, data.email, data.password, data.verify_num]):
-                return {"status": "fail", "msg": "Fail to reset password."}
-
             # 查詢用戶
             user = await UsersModel.filter(username=data.username, email=data.email).first()
             if not user:
@@ -228,10 +211,6 @@ class UsersManager:
         使用者更新密碼
         """
         try:
-            # 確保資料完整性
-            if not all([data.username, data.email, data.old_password, data.new_password]):
-                return {"status": "fail", "msg": "Fail to update password."}
-
             # 確保舊密碼和新密碼不同
             if data.old_password == data.new_password:
                 return {"status": "fail", "msg": "Fail to update password."}
@@ -241,7 +220,7 @@ class UsersManager:
                 return {"status": "fail", "msg": "Old password is wrong."}
 
             # 更新密碼
-            await UsersModel.filter(user_uid=current_user.user_uid).update(password=data.new_password)
+            await UsersModel.filter(user_uid=current_user.user_uid, email=current_user.email).update(password=data.new_password)
 
             return {"status": "success", "msg": "Successful update password."}
 
