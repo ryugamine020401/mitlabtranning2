@@ -59,8 +59,8 @@ export default function ListProduct() {
     const id = urlParams.get("id") || ""; // 獲取 id
     if (id) setListid(id);
     if (Name) setListName(Name);
-    setErrorMessage("")
-    setSuccessMessage("")
+    setErrorMessage("");
+    setSuccessMessage("");
 
     ProductsBox("/get_product/", { f_list_id: id }, true)
       .then((response) => {
@@ -137,11 +137,36 @@ export default function ListProduct() {
   };
 
   const handleDelete = (id) => {
-    setProducts(products.filter((product) => product.id !== id));
-    setEditingId(null);
+    console.log({
+      f_list_id: listid,
+      id: id.toString(),
+    });
+    ProductsBox(
+      "/delete_product/",
+      {
+        f_list_id: listid,
+        id: id.toString(),
+      },
+      true
+    )
+      .then((result) => {
+        console.log("Delet_product successful!");
+        setSuccessMessage("刪除成功");
+        //setProducts(products.filter((product) => product.id !== id));
+        setEditingId(null);
+        setTimeout(() => {
+          setSuccessMessage("");
+          setRefreshKey((prevKey) => prevKey + 1);
+        }, 2000);
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+        console.log("Delet_product failed:", error.message);
+      });
   };
 
   const handleAddNew = () => {
+    setErrorMessage("");
     setIsAddingNew(true);
   };
 
@@ -161,7 +186,7 @@ export default function ListProduct() {
 
   const handleConfirmAdd = () => {
     if (validateForm(newProduct)) {
-      console.log(newProduct.product_image_url)
+      //console.log(newProduct.product_image_url)
       ProductsBox(
         "/create_product/",
         {
@@ -181,7 +206,7 @@ export default function ListProduct() {
           setTimeout(() => {
             setSuccessMessage("");
             setRefreshKey((prevKey) => prevKey + 1);
-          }, 2000);
+          }, 1000);
 
           handleCancelAdd();
         })
@@ -302,7 +327,7 @@ export default function ListProduct() {
             <h2 className="text-xl font-semibold mb-4">清單名稱</h2>
             {/* API錯誤訊息顯示 */}
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-            
+
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>

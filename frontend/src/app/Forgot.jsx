@@ -8,6 +8,14 @@ import { setView } from "../../store/authSlice";
 import { Eye, EyeOff } from "lucide-react";
 import { UserBox } from "../../services/UserManager/UserBox";
 
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export function ForgotPasswordView() {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -103,15 +111,16 @@ export function ForgotPasswordView() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (!isVerified) return; // 確保只有通過驗證後才能執行
     if (validateField2()) {
+      const hashedPassword = await hashPassword(formData.confirmPassword);
       UserBox(
-        "/resetPW_user",
+        "/resetPW_user/",
         {
           username: formData.username,
           email: formData.email,
-          password: formData.confirmPassword,
+          password: hashedPassword,
           verify_num: formData.verificationCode,
         },
         false

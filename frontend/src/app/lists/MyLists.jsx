@@ -72,9 +72,8 @@ export default function MyList() {
   };
 
   const handleDelete = (id) => {
-    setMyLists(myLists.filter((list) => list.id !== id));
     ListBox(
-      "/create_list/",
+      "/delete_list/",
       {
         list_uid: id,
       },
@@ -83,6 +82,7 @@ export default function MyList() {
       .then((result) => {
         console.log("Delet_list successful!");
         setSuccessMessage("刪除成功");
+        setMyLists(myLists.filter((list) => list.id !== id));
         setTimeout(() => {
           setSuccessMessage("");
           setRefreshKey((prevKey) => prevKey + 1);
@@ -127,6 +127,8 @@ export default function MyList() {
       <h1 className="text-2xl font-bold mb-6">My Lists</h1>
       {/* 錯誤訊息顯示 */}
       {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+      {/* 成功訊息顯示 */}
+      {successMessage && <p className="text-green-500">{successMessage}</p>}
       <div className="space-y-4">
         {myLists.map((list) => (
           <div
@@ -200,10 +202,6 @@ export default function MyList() {
                   </Button>
                 </div>
               </>
-            )}
-            {/* 成功訊息顯示 */}
-            {successMessage && (
-              <p className="text-green-500">{successMessage}</p>
             )}
           </div>
         ))}

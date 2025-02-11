@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function FileUpload({
   label,
@@ -8,9 +8,15 @@ export function FileUpload({
   className = "",
   accept = "image/*",
   error,
+  initialImage, // 新增此 prop，允許外部傳入預設圖片 URL
 }) {
-  const [preview, setPreview] = useState("");
+  const [preview, setPreview] = useState(initialImage || ""); // 預設顯示傳入的圖片 URL
   const [uploading, setUploading] = useState(false);
+
+  // 當 `initialImage` 更新時，確保 `preview` 也同步更新
+  useEffect(() => {
+    setPreview(initialImage);
+  }, [initialImage]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -22,9 +28,8 @@ export function FileUpload({
 
       reader.onloadend = () => {
         const base64String = reader.result;
-        setPreview(base64String);
-        onFileSelect?.(base64String); // 傳遞 Base64 給父元件
-        
+        setPreview(base64String); // 更新預覽
+        onFileSelect?.(base64String); // 回傳 Base64 給父元件
       };
 
       reader.readAsDataURL(file); // 讀取檔案並轉為 Base64
@@ -58,7 +63,7 @@ export function FileUpload({
         {preview && (
           <div className="mt-2">
             <img
-              src={preview || "/file.svg"}
+              src={preview}
               alt="Preview"
               className="w-20 h-20 rounded-full object-cover mx-auto"
             />
