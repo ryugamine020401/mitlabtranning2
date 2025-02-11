@@ -18,6 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { ProductsBox } from "../../../../services/ProductsManager/ProductsBox";
+import { ShareButton } from "./ShareButton";
 
 export default function ListProduct() {
   const dispatch = useDispatch();
@@ -216,20 +217,6 @@ export default function ListProduct() {
     }
   };
 
-  const handleShare = () => {
-    if (shareEmail) {
-      setMembers([
-        ...members,
-        {
-          id: Date.now(),
-          name: shareEmail.split("@")[0],
-          role: "member",
-        },
-      ]);
-      setShareEmail("");
-    }
-  };
-
   const handleRemoveMember = (id) => {
     setMembers(members.filter((member) => member.id !== id));
   };
@@ -261,10 +248,7 @@ export default function ListProduct() {
             <h1 className="text-2xl font-bold">{listname}</h1>
           </div>
           <div className="flex items-center gap-4">
-            <Button onClick={() => setShowShareModal(true)}>
-              <Users className="w-4 h-4 mr-2" />
-              Share List
-            </Button>
+          <ShareButton />
             <Button variant="secondary">
               <FileText className="w-4 h-4 mr-2" />
               Export PDF
@@ -272,54 +256,7 @@ export default function ListProduct() {
           </div>
         </div>
 
-        {/*ShareButton*/}
-        {showShareModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Share List</h2>
-              <div className="space-y-4">
-                {members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{member.role}:</span>
-                      <span>{member.name}</span>
-                    </div>
-                    {member.role === "member" && (
-                      <Button
-                        variant="secondary"
-                        onClick={() => handleRemoveMember(member.id)}
-                        className="p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <div className="flex gap-2">
-                  <Input
-                    type="email"
-                    placeholder="Enter email to share"
-                    value={shareEmail}
-                    onChange={(e) => setShareEmail(e.target.value)}
-                  />
-                  <Button onClick={handleShare}>
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowShareModal(false)}
-                  className="w-full"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        
 
         {/*商品表格*/}
         <div className="bg-white rounded-lg shadow overflow-hidden">

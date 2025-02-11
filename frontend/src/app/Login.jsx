@@ -63,6 +63,7 @@ export function LoginView() {
     e.preventDefault();
     if (validateFeild()) {
       const hashedPassword = await hashPassword(formData.password);
+      //console.log(hashedPassword)
       UserBox(
         "/login_user/",
         {

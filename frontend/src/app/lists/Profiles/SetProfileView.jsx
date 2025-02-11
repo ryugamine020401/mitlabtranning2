@@ -81,6 +81,8 @@ export function SetProfileView() {
   };
 
   const handleSubmit = (e) => {
+    setErrorMessage("")
+    setSuccessMessage("")
     console.log(formData);
     e.preventDefault();
     //if (validateForm()) {
