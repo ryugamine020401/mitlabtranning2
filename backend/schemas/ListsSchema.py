@@ -5,7 +5,7 @@ from typing import Optional
 # 新增清單請求模型
 class CreateListSchema(BaseSchema):
     list_name: str = Field(..., max_length=100)
-    description: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = Field(str, max_length=255)
 
 # 刪除清單請求模型
 class DeleteListSchema(BaseSchema):
@@ -14,5 +14,5 @@ class DeleteListSchema(BaseSchema):
 # 更新清單請求模型
 class UpdateListSchema(BaseSchema):
     list_uid: str = Field(..., max_length=36)
-    list_name: str = Field(..., max_length=100)
-    description: Optional[str] = Field(None, max_length=255)
+    list_name: Optional[str] = Field(..., max_length=100)
+    description: Optional[str] = Field(..., max_length=255)

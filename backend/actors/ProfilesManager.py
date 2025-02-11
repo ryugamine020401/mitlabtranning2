@@ -14,10 +14,6 @@ class ProfilesManager:
         創建使用者基本資料
         """
         try:
-            # 檢查資料完整性
-            if not all([data.f_user_id, data.name, data.phone_number, data.date_of_birth, data.address]):
-                return {"status": "fail", "msg": "Fail to create profile."}
-            
             # 檢查使用者是否存在
             current_user = await UsersModel.filter(user_uid=data.f_user_id).first()
             if not current_user:
@@ -74,36 +70,35 @@ class ProfilesManager:
     @router.post("/update_profile/")
     async def update_profile(data: UpdateProfileSchema, current_user: UsersModel = Depends(get_current_user)):
         """
-        獲取使用者基本資料
+        更新使用者基本資料
         """
         try:
             user_profile = await ProfilesModel.filter(f_user_uid=current_user).first()
             if not user_profile:
-                return {"status": "fail", "msg": "Fail to update profile.", "data": []}
+                return {"status": "fail", "msg": "Fail to update profile."}
 
             # 更新有變動的資料
-            update_data = {}
-            if data.name:
-                update_data["name"] = data.name
-            if data.phone_number:
-                update_data["phone_number"] = data.phone_number
-            if data.date_of_birth:
-                update_data["date_of_birth"] = data.date_of_birth
-            if data.address:
-                update_data["address"] = data.address
-            if data.profile_picture_url:
-                update_data["profile_picture_url"] = data.profile_picture_url
-            if data.bio:
-                update_data["bio"] = data.bio
+            update_data = data.dict(exclude_unset=True)  # 排除沒有提供的欄位
 
-            # 直接更新資料
+            # 處理圖片並儲存
+            try:
+                if update_data["profile_picture_url"] != user_profile.profile_picture_url:
+                    # 刪除舊的圖片檔案
+                    old_image_path = Path("resource") / str(current_user.user_uid) / "profile" / user_profile.profile_picture_url
+                    if old_image_path.exists():
+                        old_image_path.unlink()  # 刪除舊圖片檔案
+
+                    # 儲存新的圖片並更新路徑
+                    image_path = await handle_image_and_save(update_data["profile_picture_url"], str(current_user.user_uid), "profile")
+                    update_data["profile_picture_url"] = image_path  # 更新為新的圖片路徑
+            except ValueError as e:
+                return {"status": "fail", "msg": "Fail to update profile."}
+
+            # 更新資料
             if update_data:
                 await ProfilesModel.filter(f_user_uid=current_user).update(**update_data)
 
-            return {
-                "status": "success",
-                "msg": "Successful update profile."
-            }
+            return {"status": "success", "msg": "Successful update profile."}
         
         except Exception as e:
-            return {"status": "fail", "msg": "Fail to update profile.", "data": [], "e": str(e)}
+            return {"status": "fail", "msg": "Fail to update profile."}
