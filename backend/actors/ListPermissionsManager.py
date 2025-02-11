@@ -10,13 +10,13 @@ router = APIRouter()
 
 class ListPermissionsManager:
     @staticmethod
-    @router.post("/get_list_permission/")
-    async def get_list_permission(current_user: UsersModel = Depends(get_current_user)):
+    @router.post("/get_viewer_permission/")
+    async def get_viewer_permission(data: GetiewerPermissionSchema, current_user: UsersModel = Depends(get_current_user)):
         """
-        提供清單擁有者查看全部已共享清單
+        提供清單擁有者查看當前清單的所有清單共用者
         """
         try:
-            shared_lists = await ListPermissionsModel.filter(f_owner_id=current_user).select_related("f_viewer_id", "f_list_id").all()
+            shared_lists = await ListPermissionsModel.filter(f_owner_id=current_user, f_list_id=data.f_list_id).select_related("f_viewer_id").all()
             if not shared_lists:
                 return {"status": "success", "msg": "Successful get share list, but no any share list.", "data": []}
 
@@ -26,12 +26,7 @@ class ListPermissionsManager:
                 "msg": "Successful get share list.",
                 "data": [
                     {
-                        "f_viewer_email": lst.f_viewer_id.email,
-                        "f_viewer_id": lst.f_viewer_id.user_uid,
-                        "f_list_id": lst.f_list_id.list_uid,
-                        "list_name": lst.f_list_id.list_name,
-                        "description": lst.f_list_id.description,
-                        "created_at": lst.f_list_id.created_at
+                        "f_viewer_email": lst.f_viewer_id.email
                     }
                     for lst in shared_lists
                 ]

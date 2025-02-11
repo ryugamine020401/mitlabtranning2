@@ -2,6 +2,10 @@ from .BaseSchema import BaseSchema
 from pydantic import Field
 from typing import Optional
 
+# 獲取清單共用者請求模型
+class GetiewerPermissionSchema(BaseSchema):
+    f_list_id: str = Field(..., max_length=36)
+
 # 新增清單共用者請求模型
 class CreateViewerPermissionSchema(BaseSchema):
     email: str = Field(..., max_length=320)

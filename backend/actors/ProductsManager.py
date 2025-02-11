@@ -106,9 +106,10 @@ class ProductsManager:
                 return {"status": "fail", "msg": "Fail to delete product."}
             
             # 刪除產品的圖片資料夾
-            folder_path = Path("resource") / str(current_user.user_uid) / user_list.list_name / product.product_name
-            if folder_path.exists():
-                shutil.rmtree(folder_path)  # 移除整個資料夾及其內容
+            old_image_path = Path("/home/kid/mitlabtranning2/backend/") / product.product_image_url
+            print(f"old_image_path: {old_image_path}")
+            old_image_path.unlink()
+            print(f"Deleted: {old_image_path}")
 
             # 刪除產品
             await product.delete()
@@ -116,6 +117,7 @@ class ProductsManager:
             return {"status": "success", "msg": "Successful delete product."}
 
         except Exception as e:
+            print(f"e {str(e)}")
             return {"status": "fail", "msg": "Fail to delete product."}
         
     @router.post("/update_product/")
@@ -153,7 +155,8 @@ class ProductsManager:
             try:
                 if data.product_image_url != product.product_image_url:
                     # 刪除舊的圖片檔案
-                    old_image_path = Path("resource") / str(current_user.user_uid) / user_list.list_name / product.product_image_url
+                    old_image_path = Path("backend") / product.product_image_url
+                    print(f"old_image_path: {old_image_path}")
                     if old_image_path.exists():
                         old_image_path.unlink()  # 刪除舊圖片檔案
                     
