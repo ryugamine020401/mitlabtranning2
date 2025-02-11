@@ -50,8 +50,8 @@ export function LoginView() {
   };
 
   const handleSubmit = (e) => {
-    const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/UsersManager`;
-    console.log(API_URL)
+    //const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/UsersManager`;
+    //console.log(API_URL)
     e.preventDefault();
     if (validateFeild()) {
       UserBox(

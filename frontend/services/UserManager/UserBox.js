@@ -6,7 +6,7 @@ export const UserBox = (endpoint, data, needAuth = false) => {
   //console.log(API_URL)
   // 取得 token（若需要）
   const token = needAuth ? localStorage.getItem("token") : null;
-  console.log("API_URL:", API_URL);
+  //console.log("API_URL:", API_URL);
 
   return axios.post(
     `${API_URL}${endpoint}`, // 組合 API URL

@@ -16,6 +16,7 @@ export default function MyList() {
   const [newListData, setNewListData] = useState({ name: "", description: "" });
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
+  const [successMessage, setSuccessMessage] = useState(""); // 儲存成功訊息
   const [refreshKey, setRefreshKey] = useState(0); // 用來觸發 `useEffect`
 
   useEffect(() => {
@@ -72,6 +73,25 @@ export default function MyList() {
 
   const handleDelete = (id) => {
     setMyLists(myLists.filter((list) => list.id !== id));
+    ListBox(
+      "/create_list/",
+      {
+        list_uid: id,
+      },
+      true
+    )
+      .then((result) => {
+        console.log("Delet_list successful!");
+        setSuccessMessage("刪除成功");
+        setTimeout(() => {
+          setSuccessMessage("");
+          setRefreshKey((prevKey) => prevKey + 1);
+        }, 2000);
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+        console.log("Delet_list failed:", error.message);
+      });
   };
 
   const handleAddNew = () => {
@@ -180,6 +200,10 @@ export default function MyList() {
                   </Button>
                 </div>
               </>
+            )}
+            {/* 成功訊息顯示 */}
+            {successMessage && (
+              <p className="text-green-500">{successMessage}</p>
             )}
           </div>
         ))}
