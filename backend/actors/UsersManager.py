@@ -220,7 +220,7 @@ class UsersManager:
                 return {"status": "fail", "msg": "Old password is wrong."}
 
             # 更新密碼
-            await UsersModel.filter(user_uid=current_user.user_uid).update(password=data.new_password)
+            await UsersModel.filter(user_uid=current_user.user_uid, email=current_user.email).update(password=data.new_password)
 
             return {"status": "success", "msg": "Successful update password."}
 
