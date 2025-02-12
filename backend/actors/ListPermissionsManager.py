@@ -26,7 +26,9 @@ class ListPermissionsManager:
                 "msg": "Successful get share list.",
                 "data": [
                     {
-                        "f_viewer_email": lst.f_viewer_id.email
+                        "f_viewer_email": lst.f_viewer_id.email,
+                        "f_viewer_id": lst.f_viewer_id.f_viewer_id,
+                        "f_owner_email": current_user.email
                     }
                     for lst in shared_lists
                 ]
