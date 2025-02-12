@@ -27,7 +27,7 @@ class ListPermissionsManager:
                 "data": [
                     {
                         "f_viewer_email": lst.f_viewer_id.email,
-                        "f_viewer_id": lst.f_viewer_id.f_viewer_id,
+                        "f_viewer_id": lst.f_viewer_id.user_uid,
                         "f_owner_email": current_user.email
                     }
                     for lst in shared_lists
@@ -35,7 +35,7 @@ class ListPermissionsManager:
             }
 
         except Exception as e:
-            return {"status": "fail", "msg": "Fail to get share list.", "data": []}
+            return {"status": "fail", "msg": "Fail to get share list.", "data": [], "e": str(e)}
         
     @staticmethod
     @router.post("/create_viewer_permission/")
