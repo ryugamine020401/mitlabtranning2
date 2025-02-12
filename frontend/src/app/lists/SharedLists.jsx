@@ -1,7 +1,8 @@
 "use client";
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ListPermissionsBox } from "../../../services/ListPermissionsManager/ListPermissionsBox";
+import Link from "next/link";
 
 export default function SharedList() {
   const [sharedLists, setSharedLists] = useState([]);
@@ -19,7 +20,7 @@ export default function SharedList() {
             description: item.description || "",
             sharedBy: item.f_owner_email,
           }));
-          console.log(formattedLists)
+          //console.log(formattedLists);
           setSharedLists(formattedLists);
         } else {
           setSharedLists([]);
@@ -43,22 +44,29 @@ export default function SharedList() {
         <div className="space-y-4">
           {sharedLists.map((list) => (
             <div key={list.id} className="flex items-center gap-4">
-              <div
-                //onClick={() => handleViewDetail(list.name)}
-                className="flex-1 bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
+              <Link
+                href={{
+                  pathname: `/lists/${list.listname}`,
+                  query: { id: list.id },
+                }}
+                className="flex-1"
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-4">
-                    <span className="font-bold">{list.listname}</span>
-                    <span className="text-gray-500 text-sm">
-                      {list.description}
+                <div
+                  className="flex-1 bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-4">
+                      <span className="font-bold">{list.listname}</span>
+                      <span className="text-gray-500 text-sm">
+                        {list.description}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      Shared by: {list.sharedBy}
                     </span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    Shared by: {list.sharedBy}
-                  </span>
                 </div>
-              </div>
+              </Link>
             </div>
           ))}
         </div>

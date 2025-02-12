@@ -20,6 +20,8 @@ export default function MyList() {
   const [refreshKey, setRefreshKey] = useState(0); // 用來觸發 `useEffect`
 
   useEffect(() => {
+    setErrorMessage("");
+    setSuccessMessage("");
     ListBox("/get_list/", {}, true)
       .then((response) => {
         if (response.data.length > 0) {

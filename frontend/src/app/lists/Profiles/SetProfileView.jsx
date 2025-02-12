@@ -94,7 +94,7 @@ export function SetProfileView() {
         date_of_birth: formData.birthDate,
         address: `${formData.city}${formData.address}`,
         profile_picture_url: formData.profile_picture_url,
-        bio: formData.bio,
+        bio: formData.bio|| "無",
       },
       true
     )
@@ -104,7 +104,7 @@ export function SetProfileView() {
       })
       .catch((error) => {
         setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
-        console.log("Verify failed:", error.message);
+        console.log("Reset profile failed:", error.message);
       });
     //}
   };

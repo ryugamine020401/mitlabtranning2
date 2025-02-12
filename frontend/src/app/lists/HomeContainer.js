@@ -54,7 +54,7 @@ export default function HomeContainer() {
           <div className="flex flex-col items-center mb-8">
             <div className="w-20 h-20 rounded-full bg-gray-200 mb-4">
               <img
-                src={Data.profile_url ? Data.profile_url : "/file.svg"}
+                src={Data.profile_url ? Data.profile_url : "/user.svg"}
                 alt="Profile"
                 className="w-full h-full rounded-full object-cover"
               />

@@ -168,7 +168,7 @@ export function ForgotPasswordView() {
         </Button>
         <Input
           name="verificationCode"
-          label="VerificationCode *"
+          label="Verification Code *"
           placeholder="請輸入6位驗證碼"
           value={formData.verificationCode}
           onChange={handleChange}

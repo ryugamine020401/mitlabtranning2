@@ -52,7 +52,7 @@ export function ProfileView() {
           <div className="flex flex-col items-center">
             <div className="w-32 h-32 rounded-full bg-gray-200 mb-4 overflow-hidden">
               <img
-                src="/file.svg"
+                src="/user.svg"
                 alt="Profile"
                 className="w-full h-full object-cover"
               />

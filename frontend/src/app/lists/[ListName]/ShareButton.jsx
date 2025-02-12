@@ -23,12 +23,13 @@ export function ShareButton() {
     const urlParams = new URLSearchParams(window.location.search); // 解析 Query String
     const id = urlParams.get("id") || ""; // 獲取 id
     if (id) setListid(id);
-    console.log(id);
+    //console.log(id);
   }, []);
 
   const handleShow = () => {
-    setErrorMessage("")
-    setSuccessMessage("")
+    setErrorMessage("");
+    setSuccessMessage("");
+  
     ListPermissionsBox(
       "/get_viewer_permission/",
       {
@@ -37,33 +38,44 @@ export function ShareButton() {
       true
     )
       .then((response) => {
-        if (response.data.length > 0) {
-          const formattedMembers = response.data.map((item, index) => ({
-            id: index, // 假設 id 從 2 開始，避免與 "owner" 重複
-            name: item.f_viewer_email,
-            role: "member",
-            viewer_id: item.f_viewer_id,
-          }));
-
-          console.log(formattedMembers);
-          console.log("create_viewer success");
+        const data = response.data;
+  
+        if (data.length > 0) {
+          // 取得 owner_email (假設 API 回傳的 owner_email 一致)
+          const ownerEmail = data[0].f_owner_email || "未提供";
+  
+          // 檢查是否存在 viewer (有 `f_viewer_email` 和 `f_viewer_id`)
+          const formattedMembers = data
+            .filter((item) => item.f_viewer_email && item.f_viewer_id) // 過濾掉沒有 viewer 的項目
+            .map((item, index) => ({
+              id: index + 2, // 避免與 owner (id: 1) 重複
+              name: item.f_viewer_email,
+              role: "Member",
+              viewer_id: item.f_viewer_id,
+            }));
+  
+          console.log("get_viewer success");
+  
+          // 更新 members 狀態，確保只保留 owner 或加上 viewers
+          setMembers([
+            { id: 1, name: ownerEmail, role: "Owner", viewer_id: "" }, // 保留 owner
+            ...formattedMembers, // 只加入有 viewer 的項目
+          ]);
+  
           setShowShareModal(true);
-
-          // 更新 members 狀態
-          setMembers((prevMembers) => {
-            // 保留原本的 "owner"，然後加上新的 members
-            return [...formattedMembers];
-          });
         } else {
-          setMembers([]); // 只保留 owner
+          // 沒有 viewers，只保留 owner
+          setMembers([{ id: 1, name: "未提供", role: "Owner", viewer_id: "" }]);
+          setShowShareModal(true);
           setErrorMessage(response.msg);
         }
       })
       .catch((error) => {
-        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
-        console.log("create_viewer failed:", error.message);
+        setErrorMessage(error.message); // 顯示 API 回傳的錯誤訊息
+        console.log("get_viewer failed:", error.message);
       });
   };
+  
 
   const handleShare = () => {
     if (shareEmail) {
@@ -77,16 +89,12 @@ export function ShareButton() {
       )
         .then((response) => {
           console.log("create_viewer success");
-          setMembers([
-            ...members,
-            {
-              id: Date.now(),
-              name: shareEmail.split("@")[0],
-              role: "member",
-            },
-          ]);
-          setShareEmail("");
           setSuccessMessage("新增成功")
+          setTimeout(() => {
+            setSuccessMessage("");
+            handleShow(true);
+          }, 1000);
+          setShareEmail("");
         })
         .catch((error) => {
           setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
@@ -95,19 +103,11 @@ export function ShareButton() {
     }
   };
   const handleRemoveMember = (id) => {
-    /* const memberToRemove = members.find((member) => member.id === id);
-
-    if (!memberToRemove) {
-      console.error("Member not found");
-      return;
-    }
-
-    const { viewer_id } = memberToRemove; // 取得 viewer_id */
-    console.log(id.toString())
+    console.log(id)
     ListPermissionsBox(
       "/delete_viewer_permission/",
       {
-        f_viewer_id: id.toString(),
+        f_viewer_id: id,
         f_list_id: listid,
       },
       true
@@ -115,6 +115,10 @@ export function ShareButton() {
       .then((response) => {
         console.log("delete_viewer success");
         setSuccessMessage("刪除成功")
+        setTimeout(() => {
+          setSuccessMessage("");
+          handleShow(true);
+        }, 1000);
         setMembers(members.filter((member) => member.id !== id));
       })
       .catch((error) => {
@@ -145,7 +149,7 @@ export function ShareButton() {
                     <span className="font-medium">{member.role}:</span>
                     <span>{member.name}</span>
                   </div>
-                  {member.role === "member" && (
+                  {member.role === "Member" && (
                     <Button
                       variant="secondary"
                       onClick={() => handleRemoveMember(member.viewer_id)}
@@ -156,6 +160,12 @@ export function ShareButton() {
                   )}
                 </div>
               ))}
+              {/* 錯誤訊息顯示 */}
+              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+              {/* 成功訊息顯示 */}
+              {successMessage && (
+                <p className="text-green-500">{successMessage}</p>
+              )}
               <div className="flex gap-2">
                 <Input
                   type="email"
@@ -167,12 +177,6 @@ export function ShareButton() {
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              {/* 錯誤訊息顯示 */}
-              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-              {/* 成功訊息顯示 */}
-              {successMessage && (
-                <p className="text-green-500">{successMessage}</p>
-              )}
               <Button
                 variant="secondary"
                 onClick={() => setShowShareModal(false)}

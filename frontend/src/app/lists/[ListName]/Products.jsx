@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,10 +19,12 @@ import {
 } from "lucide-react";
 import { ProductsBox } from "../../../../services/ProductsManager/ProductsBox";
 import { ShareButton } from "./ShareButton";
+import { useReactToPrint } from "react-to-print"; //PDF
 
 export default function ListProduct() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const printRef = useRef();
   const [products, setProducts] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -217,9 +219,11 @@ export default function ListProduct() {
     }
   };
 
-  const handleRemoveMember = (id) => {
-    setMembers(members.filter((member) => member.id !== id));
-  };
+    const handlePrint = useReactToPrint({
+      content: () => printRef.current, // 指定要轉為 PDF 的區域
+      documentTitle: "MyPDF", // 下載 PDF 的文件名稱
+    });
+  
 
   const validateForm = (data) => {
     const newErrors = {};
@@ -248,18 +252,16 @@ export default function ListProduct() {
             <h1 className="text-2xl font-bold">{listname}</h1>
           </div>
           <div className="flex items-center gap-4">
-          <ShareButton />
-            <Button variant="secondary">
+            <ShareButton />
+            <Button variant="secondary" >
               <FileText className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
           </div>
         </div>
 
-        
-
         {/*商品表格*/}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div  className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4">
             <h2 className="text-xl font-semibold mb-4">清單名稱</h2>
             {/* API錯誤訊息顯示 */}
