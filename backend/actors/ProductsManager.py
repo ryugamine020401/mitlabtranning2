@@ -1,10 +1,4 @@
-from fastapi import APIRouter, Depends
-from pathlib import Path
-from uuid import uuid4
-import base64, shutil
-
 from utils import *
-from models import UsersModel, ListsModel, ProductsModel
 from schemas.ProductsSchema import *
 
 router = APIRouter()

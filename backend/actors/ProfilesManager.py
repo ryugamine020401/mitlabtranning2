@@ -1,7 +1,4 @@
-from fastapi import APIRouter, Depends
-
 from utils import *
-from models import UsersModel, ProfilesModel
 from schemas.ProfilesSchema import *
 
 router = APIRouter()

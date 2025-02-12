@@ -1,9 +1,4 @@
-from fastapi import APIRouter, Depends
-from datetime import datetime, timedelta
-import httpx
-
 from utils import *
-from models import ListPermissionsModel, ListsModel
 from schemas.ListPermissionsSchema import *
 
 router = APIRouter()

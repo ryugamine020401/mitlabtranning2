@@ -1,9 +1,4 @@
-from fastapi import APIRouter, Depends
-from datetime import datetime
-import random, string, shutil
-
 from utils import *
-from models import UsersModel, ListsModel
 from schemas.ListsSchema import *
 
 router = APIRouter()

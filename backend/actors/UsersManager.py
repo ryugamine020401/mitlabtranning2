@@ -1,10 +1,4 @@
-from fastapi import APIRouter, Depends
-from datetime import datetime, timedelta
-from email.mime.text import MIMEText
-import httpx, random, string, smtplib
-
 from utils import *
-from models import UsersModel
 from schemas.UsersSchema import *
 
 router = APIRouter()
