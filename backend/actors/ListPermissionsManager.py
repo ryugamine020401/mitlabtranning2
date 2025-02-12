@@ -13,7 +13,7 @@ class ListPermissionsManager:
         try:
             shared_lists = await ListPermissionsModel.filter(f_owner_id=current_user, f_list_id=data.f_list_id).select_related("f_viewer_id").all()
             if not shared_lists:
-                return {"status": "success", "msg": "Successful get share list, but no any share list.", "data": []}
+                return {"status": "success", "msg": "Successful get share list, but no any share viewer", "data": [{"f_owner_email": current_user.email}]}
 
             # 回傳共享清單資料
             return {
