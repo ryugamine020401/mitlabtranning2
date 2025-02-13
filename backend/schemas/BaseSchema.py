@@ -1,6 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # 基礎模型，設定禁止額外欄位
 class BaseSchema(BaseModel):
-    class Config:
-        extra = "forbid"
+     model_config = ConfigDict(extra="forbid")

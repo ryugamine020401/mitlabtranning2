@@ -36,6 +36,7 @@ class ProfilesManager:
             return {"status": "success", "msg": "Successful create profile."}
 
         except Exception as e:
+            print("ProfileManeger 39 :{e}")
             return {"status": "fail", "msg": "Fail to create profile."}
 
     @staticmethod
