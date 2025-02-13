@@ -5,7 +5,7 @@ class ListPermissionsModel(Model):
     """
     閱覽清單的權限
     """
-    id = fields.IntField(pk=True)
+    id = fields.IntField(primary_key=True)
     f_owner_id = fields.ForeignKeyField(
         "models.UsersModel", 
         related_name="permissions_given",
