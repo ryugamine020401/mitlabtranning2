@@ -1,7 +1,4 @@
-from fastapi import APIRouter, Depends
-
 from utils import *
-from models import UsersModel, ProfilesModel
 from schemas.ProfilesSchema import *
 
 router = APIRouter()
@@ -79,20 +76,26 @@ class ProfilesManager:
                 return {"status": "fail", "msg": "Fail to update profile."}
 
             # 更新有變動的資料
-            update_data = data.dict(exclude_unset=True)  # 排除沒有提供的欄位
+            update_data = {}
+            update_data["name"] = data.name
+            update_data["phone_number"] = data.phone_number
+            update_data["date_of_birth"] = data.date_of_birth
+            update_data["address"] = data.address
+            update_data["bio"] = data.bio
 
             # 處理圖片並儲存
             try:
-                if update_data["profile_picture_url"] != user_profile.profile_picture_url:
-                    # 刪除舊的圖片檔案
-                    old_image_path = Path("resource") / str(current_user.user_uid) / "profile" / user_profile.profile_picture_url
+                # 刪除舊的圖片檔案
+                if user_profile.profile_picture_url != None:
+                    old_image_path = Path("/app") / user_profile.profile_picture_url
                     if old_image_path.exists():
-                        old_image_path.unlink()  # 刪除舊圖片檔案
+                        old_image_path.unlink()
 
-                    # 儲存新的圖片並更新路徑
-                    image_path = await handle_image_and_save(update_data["profile_picture_url"], str(current_user.user_uid), "profile")
-                    update_data["profile_picture_url"] = image_path  # 更新為新的圖片路徑
-            except ValueError as e:
+                # 儲存新的圖片並更新路徑
+                image_path = await handle_image_and_save(data.profile_picture_url, current_user.user_uid, "profile")
+                update_data["profile_picture_url"] = image_path
+
+            except Exception as e:
                 return {"status": "fail", "msg": "Fail to update profile."}
 
             # 更新資料

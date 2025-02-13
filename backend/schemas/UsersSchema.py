@@ -39,7 +39,3 @@ class UpdatePasswordUserSchema(BaseSchema):
 # 更新 Email 請求模型
 class UpdateEmailUserSchema(BaseSchema):
     email: str = Field(..., max_length=320)
-
-# 獲取使用者 ID 請求模型
-class GetIDUserSchema(BaseSchema):
-    email: str = Field(..., max_length=320)

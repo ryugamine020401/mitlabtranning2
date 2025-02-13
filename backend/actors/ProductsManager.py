@@ -1,10 +1,4 @@
-from fastapi import APIRouter, Depends
-from pathlib import Path
-from uuid import uuid4
-import base64, shutil
-
 from utils import *
-from models import UsersModel, ListsModel, ProductsModel
 from schemas.ProductsSchema import *
 
 router = APIRouter()
@@ -67,7 +61,7 @@ class ProductsManager:
 
             # 處理圖片並儲存
             try:
-                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_name)
+                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_uid)
             except ValueError as e:
                 return {"status": "fail", "msg": "Fail to create product."}
 
@@ -105,10 +99,10 @@ class ProductsManager:
             if not product:
                 return {"status": "fail", "msg": "Fail to delete product."}
             
-            # 刪除產品的圖片資料夾
-            folder_path = Path("resource") / str(current_user.user_uid) / user_list.list_name / product.product_name
-            if folder_path.exists():
-                shutil.rmtree(folder_path)  # 移除整個資料夾及其內容
+            # 刪除產品的圖片檔案
+            old_image_path = Path("/app") / product.product_image_url
+            if old_image_path.exists():
+                old_image_path.unlink()
 
             # 刪除產品
             await product.delete()
@@ -151,16 +145,16 @@ class ProductsManager:
             
             # 處理圖片並儲存
             try:
-                if data.product_image_url != product.product_image_url:
-                    # 刪除舊的圖片檔案
-                    old_image_path = Path("resource") / str(current_user.user_uid) / user_list.list_name / product.product_image_url
-                    if old_image_path.exists():
-                        old_image_path.unlink()  # 刪除舊圖片檔案
-                    
-                    # 儲存新的圖片並更新路徑
-                    image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_name)
-                    update_data["product_image_url"] = image_path  # 更新為新的圖片路徑
-            except ValueError as e:
+                # 刪除舊的圖片檔案
+                old_image_path = Path("/app") / product.product_image_url
+                if old_image_path.exists():
+                    old_image_path.unlink()
+                
+                # 儲存新的圖片並更新路徑
+                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_uid)
+                update_data["product_image_url"] = image_path  # 更新為新的圖片路徑
+                
+            except Exception as e:
                 return {"status": "fail", "msg": "Fail to update product."}
             
             # 更新產品資料庫
