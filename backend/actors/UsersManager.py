@@ -8,12 +8,15 @@ async def get_next_id(table) -> str:
     查詢資料庫中最大的 id，並返回下一個 id
     """
     qs = await table.all()  # 先 await table.all() 取得查詢集
-    max_id_list = await qs.values_list("id", flat=True)  # 再從查詢集取得所有 id
+    print(f"qs : {qs}")
+    # max_id_list = await qs.values_list("id", flat=True)  # 再從查詢集取得所有 id
 
-    if not max_id_list:  # 如果沒有數據，直接從 1 開始
-        return "1"
+    # if not max_id_list:  # 如果沒有數據，直接從 1 開始
+    #     return "1"
 
-    max_id = max(map(int, filter(None, max_id_list)), default=0)  # 過濾 None 值
+    max_id = await table.all().values_list("id", flat=True)  # 取得所有 id
+    print(table.all())
+    max_id = max(map(int, max_id), default=0)  # 找出最大 id，確保是整數
     return str(max_id + 1)  # 返回下一個 ID
 
 async def generate_unique_user_uid() -> str:
@@ -124,7 +127,7 @@ class UsersManager:
             }
         
         except Exception as e:
-            print(f"UserManager 132 {e}")
+            print(f"UserManager 127 {e}")
             return {"status": "fail", "msg": "Fail to create user.", "data": []}
 
     @staticmethod
