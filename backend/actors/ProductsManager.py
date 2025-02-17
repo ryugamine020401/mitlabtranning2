@@ -151,7 +151,7 @@ class ProductsManager:
                     old_image_path.unlink()
                 
                 # 儲存新的圖片並更新路徑
-                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_uid)
+                image_path = await handle_image_and_save(data.product_image_url, current_user.user_uid, user_list.list_name)
                 update_data["product_image_url"] = image_path  # 更新為新的圖片路徑
                 
             except Exception as e:

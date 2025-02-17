@@ -55,20 +55,20 @@ def correct_base64_padding(base64_str: str) -> str:
     """
     return base64_str + "=" * (4 - len(base64_str) % 4) if len(base64_str) % 4 != 0 else base64_str
 
-async def handle_image_and_save(image_url: str, user_uid: str, list_uid: str) -> str:
+async def handle_image_and_save(image_url: str, user_uid: str, list_name: str) -> str:
     """
     處理 Base64 編碼的圖片並儲存到對應的資料夾中，返回圖片的存儲路徑
     """
     try:
         # 處理 Base64 編碼的圖片
-        image_url = correct_base64_padding(image_url)
+        # image_url = correct_base64_padding(image_url)
         image_data = base64.b64decode(image_url)  # 解碼 Base64 圖片
         # print(f"image_data: {image_data}")
     except Exception as e:
         raise ValueError(f"Invalid Base64 image encoding: {str(e)}")
 
-    # 建立資料夾結構：resource/{user_uid}/{list_uid}/
-    folder_path = Path("resource") / user_uid / list_uid
+    # 建立資料夾結構：resource/{user_uid}/{list_name}/
+    folder_path = Path("resource") / user_uid / list_name
 
     # 檢查資料夾是否存在，如果不存在則建立
     if not folder_path.exists():

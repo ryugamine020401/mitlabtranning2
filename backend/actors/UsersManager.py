@@ -221,3 +221,17 @@ class UsersManager:
         except Exception as e:
             return {"status": "fail", "msg": "Fail to update password."}
         
+    @staticmethod
+    @router.post("/delete_user/")
+    async def delete_user(current_user: UsersModel = Depends(get_current_user)):
+        """
+        使用者刪除帳號
+        """
+        await current_user.delete()
+
+        # 刪除與該清單相關的產品圖片
+        folder_path = Path("/app/resource") / str(current_user.user_uid)
+        if folder_path.exists():
+            shutil.rmtree(folder_path)  # 移除整個資料夾及其內容
+
+        return {"status": "success", "msg": "Successful delete user."}
