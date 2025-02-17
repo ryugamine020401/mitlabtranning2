@@ -42,6 +42,7 @@ export default function HomeContainer() {
   const handleLogout = () => {
     localStorage.removeItem("token"); // 清除 token
     localStorage.removeItem("authView"); // 清除存儲的 authView
+    localStorage.removeItem("homeView"); // 清除存儲的 authView
     dispatch(setView("login")); // 設定回 initialState
     router.push("/"); // 跳轉回首頁
   };

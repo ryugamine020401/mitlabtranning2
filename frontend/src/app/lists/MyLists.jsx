@@ -57,19 +57,30 @@ export default function MyList() {
 
   const handleSave = () => {
     if (validateForm(editingData)) {
-      setMyLists(
-        myLists.map((list) =>
-          list.id === editingId
-            ? {
-                ...list,
-                name: editingData.name,
-                description: editingData.description,
-              }
-            : list
-        )
-      );
-      setEditingId(null);
-      setEditingData({ name: "", description: "" });
+      
+      ListBox(
+        "/update_list/",
+        {
+          list_uid: editingId,
+          list_name: editingData.name,
+          description: editingData.description,
+        },
+        true
+      )
+        .then((result) => {
+          console.log("updata_list successful!");
+          setSuccessMessage("更新成功");
+          setEditingId("");
+          setEditingData({ name: "", description: "" });
+          setTimeout(() => {
+            setSuccessMessage("");
+            setRefreshKey((prevKey) => prevKey + 1);
+          }, 1500);
+        })
+        .catch((error) => {
+          setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+          console.log("updata_list failed:", error.message);
+        });
     }
   };
 
@@ -88,7 +99,7 @@ export default function MyList() {
         setTimeout(() => {
           setSuccessMessage("");
           setRefreshKey((prevKey) => prevKey + 1);
-        }, 2000);
+        }, 1500);
       })
       .catch((error) => {
         setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
@@ -163,7 +174,7 @@ export default function MyList() {
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    setEditingId(null);
+                    setEditingId("");
                     setEditingData({ name: "", description: "" });
                     setErrors({});
                   }}

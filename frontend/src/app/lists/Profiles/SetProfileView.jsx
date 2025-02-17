@@ -62,7 +62,7 @@ export function SetProfileView() {
             address: fullAddress.replace(extractedCity, "").trim(),
             phone: response.data[0].phone_number,
             birthDate: response.data[0].date_of_birth,
-            profile_picture_url: response.data[0].profile_picture_url,
+            //profile_picture_url: response.data[0].profile_picture_url,
             bio:response.data[0].bio || "無"
           });
         }
@@ -93,7 +93,7 @@ export function SetProfileView() {
         phone_number: formData.phone,
         date_of_birth: formData.birthDate,
         address: `${formData.city}${formData.address}`,
-        profile_picture_url: formData.profile_picture_url,
+        profile_picture_url: formData.profile_picture_url || "",
         bio: formData.bio|| "無",
       },
       true
@@ -179,7 +179,7 @@ export function SetProfileView() {
             onFileSelect={(base64) => {
               setFormData((prev) => ({
                 ...prev,
-                profile_picture_url: base64, // 確保變數名稱一致
+                profile_picture_url: base64 || "" , // 確保變數名稱一致
               }));
             }}
           />
