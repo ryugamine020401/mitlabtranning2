@@ -1,0 +1,54 @@
+{
+    "user_data": [
+        {
+            "username": "test_user_1",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "name": "Test User",
+            "phone_number": "1234567890",
+            "date_of_birth": "1990-01-01",
+            "address": "123 Test Street",
+            "status": "success",
+            "msg": "Successful registration."
+        }
+    ],
+    "forgetPW_data": [
+        {
+            "username": "test_user_1",
+            "email": "test_user_1@example.com",
+            "status": "success",
+            "msg": "Reset password link sent to your email."
+        },
+        {
+            "username": "wrong_user",
+            "email": "test_user_1@example.com",
+            "status": "fail",
+            "msg": "Incorrect information or account does not exist."
+        }
+    ],
+    "resetPW_data": [
+        {
+            "username": "wrong_user",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "status": "fail",
+            "msg": "Fail to reset password."
+        },
+        {
+            "username": "test_user_1",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "status": "success",
+            "msg": "Successful reset password."
+        }
+    ],
+    "login_data": [
+        {
+            "username": "test_user_1",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "status": "success",
+            "msg": "Successful login."
+        }
+    ]
+}
