@@ -1,9 +1,4 @@
-from fastapi import APIRouter, Depends
-from datetime import datetime
-import random, string, shutil
-
 from utils import *
-from models import UsersModel, ListsModel
 from schemas.ListsSchema import *
 
 router = APIRouter()
@@ -91,7 +86,7 @@ class ListsManager:
                 return {"status": "fail", "msg": "Fail to delete list."}
             
             # 刪除與該清單相關的產品圖片
-            folder_path = Path("resource") / str(current_user.user_uid) / user_list.list_name
+            folder_path = Path("/app/resource") / str(current_user.user_uid) / user_list.list_name
             if folder_path.exists():
                 shutil.rmtree(folder_path)  # 移除整個資料夾及其內容
 
@@ -103,7 +98,7 @@ class ListsManager:
             return {"status": "fail", "msg": "Fail to delete list."}
         
     @staticmethod
-    @router.post("/update_list")
+    @router.post("/update_list/")
     async def update_list(data: UpdateListSchema, current_user: UsersModel = Depends(get_current_user)):
         """
         提供已有帳號的使用者能更新單一清單內容

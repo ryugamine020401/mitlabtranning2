@@ -1,10 +1,13 @@
-from fastapi import HTTPException, Header
-from jose import jwt, JWTError
-from models import UsersModel
-from dotenv import load_dotenv
-from pathlib import Path
+from fastapi import HTTPException, Header, Depends, APIRouter
 from uuid import uuid4
-import os, base64
+from pathlib import Path
+from jose import jwt, JWTError
+from dotenv import load_dotenv
+from email.mime.text import MIMEText
+from datetime import datetime, timedelta
+import os, base64, httpx, shutil, random, string, smtplib
+
+from models import UsersModel, ProfilesModel, ListsModel, ProductsModel, ListPermissionsModel
 
 # 載入 .env 檔案
 load_dotenv()
@@ -58,7 +61,7 @@ async def handle_image_and_save(image_url: str, user_uid: str, list_name: str) -
     """
     try:
         # 處理 Base64 編碼的圖片
-        image_url = correct_base64_padding(image_url)
+        # image_url = correct_base64_padding(image_url)
         image_data = base64.b64decode(image_url)  # 解碼 Base64 圖片
         # print(f"image_data: {image_data}")
     except Exception as e:

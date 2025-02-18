@@ -1,0 +1,60 @@
+{
+    "user_data": [
+        {
+            "username": "test_user_1",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "name": "Test User",
+            "phone_number": "1234567890",
+            "date_of_birth": "1990-01-01",
+            "address": "123 Test Street",
+            "status": "success",
+            "msg": "Successful registration."
+        },
+        {
+            "username": "test_user_2",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "name": "Test User",
+            "phone_number": "1234567890",
+            "date_of_birth": "1990-01-01",
+            "address": "123 Test Street",
+            "status": "fail",
+            "msg": "This email has already been registered."
+        },
+        {
+            "username": "test_user_1",
+            "email": "test_user_2@example.com",
+            "password": "testpassword",
+            "name": "Test User",
+            "phone_number": "1234567890",
+            "date_of_birth": "1990-01-01",
+            "address": "123 Test Street",
+            "status": "fail",
+            "msg": "This username has already been registered."
+        }
+    ],
+    "login_data": [
+        {
+            "username": "test_user_1",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "status": "success",
+            "msg": "Successful login."
+        },
+        {
+            "username": "wrong_user",
+            "email": "test_user_1@example.com",
+            "password": "testpassword",
+            "status": "fail",
+            "msg": "This user doesn't exist."
+        },
+        {
+            "username": "test_user_1",
+            "email": "test_user_1@example.com",
+            "password": "wrongpassword",
+            "status": "fail",
+            "msg": "The email or password is wrong."
+        }
+    ]
+}
