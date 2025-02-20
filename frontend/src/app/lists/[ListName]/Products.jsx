@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
@@ -14,10 +14,12 @@ import {
   Home,
   FileText,
   Users,
+  Camera,
 } from "lucide-react";
 import { ProductsBox } from "../../../../services/ProductsManager/ProductsBox";
 import { ShareButton } from "./ShareButton";
-import { useReactToPrint } from "react-to-print"; //PDF
+//import { useReactToPrint } from "react-to-print"; //PDF
+import { BarcodeScanner } from "./BarcodeScanner";
 
 export default function ListProduct() {
   const [products, setProducts] = useState([]);
@@ -40,7 +42,7 @@ export default function ListProduct() {
   const [refreshKey, setRefreshKey] = useState(0); // 用來觸發 `useEffect`
   const [listid, setListid] = useState(null);
   const [listname, setListName] = useState("");
-
+  const [showScanner, setShowScanner] = useState("");
 
   useEffect(() => {
     const currentPath = window.location.pathname; // 取得路由 path
@@ -223,7 +225,7 @@ export default function ListProduct() {
     }
   };
 
-    const handlePrint = () => {
+  const handlePrint = () => {
     window.print();
   };
   /* const handlePrint = useReactToPrint({
@@ -259,10 +261,7 @@ export default function ListProduct() {
           </div>
           <div className="flex items-center gap-4">
             <ShareButton />
-            <Button
-              onClick={() => handlePrint()}
-              variant="secondary"
-            >
+            <Button onClick={() => handlePrint()} variant="secondary">
               <FileText className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
@@ -270,9 +269,7 @@ export default function ListProduct() {
         </div>
 
         {/*商品表格*/}
-        <div
-          className="bg-white rounded-lg shadow overflow-hidden"
-        >
+        <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4">
             <h2 className="text-xl font-semibold mb-4">清單名稱</h2>
             {/* API錯誤訊息顯示 */}
@@ -373,6 +370,7 @@ export default function ListProduct() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {editingId === product.id ? (
+                          <div className="flex items-center gap-2 relative">
                           <Input
                             value={editingProduct.product_barcode}
                             onChange={(e) =>
@@ -382,10 +380,31 @@ export default function ListProduct() {
                               )
                             }
                           />
+                          <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setShowScanner(product.id)}
+                              className="flex-shrink-0"
+                            >
+                              <Camera className="h-4 w-4" />
+                            </Button>
+                            {showScanner === product.id && (
+                              <div className="absolute top-full left-0 mt-2">
+                                <BarcodeScanner
+                                  onScan={(code) => {
+                                    handleEditChange("product_barcode", code);
+                                    setShowScanner(null);
+                                  }}
+                                  onClose={() => setShowScanner(null)}
+                                />
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           product.product_barcode
                         )}
-                      </td>
+                      </td> 
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         {editingId === product.id ? (
                           <Input
