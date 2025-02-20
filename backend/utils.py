@@ -1,6 +1,7 @@
 from fastapi import HTTPException, Header, Depends, APIRouter
 from uuid import uuid4
 from pathlib import Path
+from google import genai
 from jose import jwt, JWTError
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
@@ -8,6 +9,7 @@ from datetime import datetime, timedelta
 import os, base64, httpx, shutil, random, string, smtplib
 
 from models import UsersModel, ProfilesModel, ListsModel, ProductsModel, ListPermissionsModel
+from pydantic import BaseModel
 
 # 載入 .env 檔案
 load_dotenv()
@@ -24,6 +26,14 @@ SMTP_SERVER = os.getenv("SMTP_SERVER")
 SMTP_PORT = int(os.getenv("SMTP_PORT"))
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
+
+# 從 .env 獲取 GPT 配置
+API_KEY = os.getenv("API_KEY")
+API_PROMPT = os.getenv("API_PROMPT")
+
+# 定義請求的 prompt
+def generate_prompt(product_name, expiry_date):
+    return API_PROMPT.format(product_name=product_name, expiry_date=expiry_date)
 
 def verify_access_token(token: str):
     """
