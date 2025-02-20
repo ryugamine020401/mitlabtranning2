@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { FileUpload } from "../FileUpload";
@@ -18,10 +16,10 @@ import {
   Users,
 } from "lucide-react";
 import { ProductsBox } from "../../../../services/ProductsManager/ProductsBox";
+import { ShareButton } from "./ShareButton";
+import { useReactToPrint } from "react-to-print"; //PDF
 
 export default function ListProduct() {
-  const dispatch = useDispatch();
-  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -37,18 +35,12 @@ export default function ListProduct() {
     description: "",
     checked: false,
   });
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [shareEmail, setShareEmail] = useState("");
-  const [members, setMembers] = useState([
-    { id: 1, name: "Name", role: "owner" },
-    { id: 2, name: "Name", role: "member" },
-    { id: 3, name: "Name", role: "member" },
-  ]);
   const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
   const [successMessage, setSuccessMessage] = useState(""); // 儲存成功訊息
   const [refreshKey, setRefreshKey] = useState(0); // 用來觸發 `useEffect`
   const [listid, setListid] = useState(null);
   const [listname, setListName] = useState("");
+
 
   useEffect(() => {
     const currentPath = window.location.pathname; // 取得路由 path
@@ -59,8 +51,8 @@ export default function ListProduct() {
     const id = urlParams.get("id") || ""; // 獲取 id
     if (id) setListid(id);
     if (Name) setListName(Name);
-    setErrorMessage("")
-    setSuccessMessage("")
+    setErrorMessage("");
+    setSuccessMessage("");
 
     ProductsBox("/get_product/", { f_list_id: id }, true)
       .then((response) => {
@@ -127,21 +119,62 @@ export default function ListProduct() {
   };
 
   const handleConfirmEdit = () => {
-    setProducts(
-      products.map((product) =>
-        product.id === editingId ? editingProduct : product
-      )
-    );
-    setEditingId(null);
-    setEditingProduct(null);
+    ProductsBox(
+      "/update_product/",
+      {
+        f_list_id: listid,
+        id: editingProduct.id.toString(),
+        product_name: editingProduct.product_name,
+        product_barcode: editingProduct.product_barcode,
+        product_image_url: "",
+        product_number: editingProduct.product_number,
+        expiry_date: editingProduct.expire_date,
+        description: editingProduct.description,
+      },
+      true
+    )
+      .then((result) => {
+        console.log("update_product successful!");
+        setSuccessMessage("更新成功");
+        setEditingId(null);
+        setEditingProduct(null);
+        setTimeout(() => {
+          setSuccessMessage("");
+          setRefreshKey((prevKey) => prevKey + 1);
+        }, 1500);
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+        console.log("update_product failed:", error.message);
+      });
   };
 
   const handleDelete = (id) => {
-    setProducts(products.filter((product) => product.id !== id));
-    setEditingId(null);
+    ProductsBox(
+      "/delete_product/",
+      {
+        f_list_id: listid,
+        id: id.toString(),
+      },
+      true
+    )
+      .then((result) => {
+        console.log("Delet_product successful!");
+        setSuccessMessage("刪除成功");
+        setEditingId(null);
+        setTimeout(() => {
+          setSuccessMessage("");
+          setRefreshKey((prevKey) => prevKey + 1);
+        }, 1500);
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+        console.log("Delet_product failed:", error.message);
+      });
   };
 
   const handleAddNew = () => {
+    setErrorMessage("");
     setIsAddingNew(true);
   };
 
@@ -161,7 +194,6 @@ export default function ListProduct() {
 
   const handleConfirmAdd = () => {
     if (validateForm(newProduct)) {
-      console.log(newProduct.product_image_url)
       ProductsBox(
         "/create_product/",
         {
@@ -181,7 +213,7 @@ export default function ListProduct() {
           setTimeout(() => {
             setSuccessMessage("");
             setRefreshKey((prevKey) => prevKey + 1);
-          }, 2000);
+          }, 1000);
 
           handleCancelAdd();
         })
@@ -191,24 +223,14 @@ export default function ListProduct() {
     }
   };
 
-  const handleShare = () => {
-    if (shareEmail) {
-      setMembers([
-        ...members,
-        {
-          id: Date.now(),
-          name: shareEmail.split("@")[0],
-          role: "member",
-        },
-      ]);
-      setShareEmail("");
-    }
+    const handlePrint = () => {
+    window.print();
   };
-
-  const handleRemoveMember = (id) => {
-    setMembers(members.filter((member) => member.id !== id));
-  };
-
+  /* const handlePrint = useReactToPrint({
+    content: () => printRef.current, // 指定要轉為 PDF 的區域
+    documentTitle: "MyPDF", // 下載 PDF 的文件名稱
+  });
+ */
   const validateForm = (data) => {
     const newErrors = {};
     if (!data.product_name.trim()) newErrors.product_name = "商品名稱不能為空";
@@ -228,7 +250,7 @@ export default function ListProduct() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href={`/lists`}>
-              <Button variant="secondary">
+              <Button variant="secondary print-btn">
                 <Home className="w-4 h-4 mr-2" />
                 Home
               </Button>
@@ -236,73 +258,26 @@ export default function ListProduct() {
             <h1 className="text-2xl font-bold">{listname}</h1>
           </div>
           <div className="flex items-center gap-4">
-            <Button onClick={() => setShowShareModal(true)}>
-              <Users className="w-4 h-4 mr-2" />
-              Share List
-            </Button>
-            <Button variant="secondary">
+            <ShareButton />
+            <Button
+              onClick={() => handlePrint()}
+              variant="secondary"
+            >
               <FileText className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
           </div>
         </div>
 
-        {/*ShareButton*/}
-        {showShareModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Share List</h2>
-              <div className="space-y-4">
-                {members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{member.role}:</span>
-                      <span>{member.name}</span>
-                    </div>
-                    {member.role === "member" && (
-                      <Button
-                        variant="secondary"
-                        onClick={() => handleRemoveMember(member.id)}
-                        className="p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <div className="flex gap-2">
-                  <Input
-                    type="email"
-                    placeholder="Enter email to share"
-                    value={shareEmail}
-                    onChange={(e) => setShareEmail(e.target.value)}
-                  />
-                  <Button onClick={handleShare}>
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowShareModal(false)}
-                  className="w-full"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/*商品表格*/}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div
+          className="bg-white rounded-lg shadow overflow-hidden"
+        >
           <div className="p-4">
             <h2 className="text-xl font-semibold mb-4">清單名稱</h2>
             {/* API錯誤訊息顯示 */}
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-            
+
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>

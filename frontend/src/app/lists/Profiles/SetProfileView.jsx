@@ -11,15 +11,16 @@ import { ProfilesBox } from "../../../../services/ProfilesManager/ProfilesBox";
 
 export function SetProfileView() {
   const dispatch = useDispatch();
-  const [preformData, setPreFormData] = useState({});
+  const [successMessage, setSuccessMessage] = useState(""); // 儲存成功訊息
+  const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     city: "",
     address: "",
     phone: "",
     birthDate: "",
     profile_picture_url: "",
+    bio: ""
   });
   const taiwanCities = [
     "基隆市",
@@ -57,12 +58,12 @@ export function SetProfileView() {
           const extractedCity = cityMatch ? cityMatch[0] : "";
           setFormData({
             name: response.data[0].name,
-            email: response.data[0].email,
             city: extractedCity,
             address: fullAddress.replace(extractedCity, "").trim(),
             phone: response.data[0].phone_number,
             birthDate: response.data[0].date_of_birth,
-            profile_picture_url: response.data[0].profile_picture_url,
+            //profile_picture_url: response.data[0].profile_picture_url,
+            bio:response.data[0].bio || "無"
           });
         }
       })
@@ -80,35 +81,34 @@ export function SetProfileView() {
   };
 
   const handleSubmit = (e) => {
+    setErrorMessage("")
+    setSuccessMessage("")
+    console.log(formData);
     e.preventDefault();
-    if (validateForm()) {
-      ProfilesBox(
-        "/update_profile/",
-        {
-          name: formData.name,
-          phone_number: formData.phone,
-          date_of_birth: formData.birthDate,
-          address: `${formData.city}${formData.address}`,
-          profile_picture_url: formData.profile_picture_url,
-          bio: "",
-        },
-        true
-      )
-        .then((result) => {
-          console.log("Reset profile successful!");
-          setSuccessMessage("編輯成功");
-        })
-        .catch((error) => {
-          setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
-          console.log("Verify failed:", error.message);
-        });
-    }
+    //if (validateForm()) {
+    ProfilesBox(
+      "/update_profile/",
+      {
+        name: formData.name,
+        phone_number: formData.phone,
+        date_of_birth: formData.birthDate,
+        address: `${formData.city}${formData.address}`,
+        profile_picture_url: formData.profile_picture_url || "",
+        bio: formData.bio|| "無",
+      },
+      true
+    )
+      .then((result) => {
+        console.log("Reset profile successful!");
+        setSuccessMessage("編輯成功");
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+        console.log("Reset profile failed:", error.message);
+      });
+    //}
   };
 
-  const handleFileSelect = (file) => {
-    //console.log("Selected file:", file);
-    // Handle file upload
-  };
   const validateForm = () => {
     const newErrors = {};
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -168,19 +168,23 @@ export function SetProfileView() {
             value={formData.birthDate}
             onChange={handleChange}
           />
-          {/*<FileUpload label="Profile picture" onFileSelect={handleFileSelect} />*/}
+          <Input
+            label="個人說明"
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+          />
           <FileUpload
+            label="Profile Picture"
             onFileSelect={(base64) => {
               setFormData((prev) => ({
                 ...prev,
-                product_image_url: base64, // 存儲 Base64 字串
+                profile_picture_url: base64 || "" , // 確保變數名稱一致
               }));
             }}
           />
           <div className="flex gap-4 justify-center pt-4">
-            <Button type="submit" onClick={handleSubmit}>
-              Update
-            </Button>
+            <Button type="submit">Update</Button>
             <Button
               type="button"
               variant="secondary"
@@ -189,6 +193,10 @@ export function SetProfileView() {
               Cancel
             </Button>
           </div>
+          {/* 錯誤訊息顯示 */}
+          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+          {/* 成功訊息顯示 */}
+          {successMessage && <p className="text-green-500">{successMessage}</p>}
         </form>
       </div>
     </div>

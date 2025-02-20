@@ -42,6 +42,7 @@ export default function HomeContainer() {
   const handleLogout = () => {
     localStorage.removeItem("token"); // 清除 token
     localStorage.removeItem("authView"); // 清除存儲的 authView
+    localStorage.removeItem("homeView"); // 清除存儲的 authView
     dispatch(setView("login")); // 設定回 initialState
     router.push("/"); // 跳轉回首頁
   };
@@ -54,7 +55,7 @@ export default function HomeContainer() {
           <div className="flex flex-col items-center mb-8">
             <div className="w-20 h-20 rounded-full bg-gray-200 mb-4">
               <img
-                src={Data.profile_url ? Data.profile_url : "/file.svg"}
+                src={Data.profile_url ? Data.profile_url : "/user.svg"}
                 alt="Profile"
                 className="w-full h-full rounded-full object-cover"
               />

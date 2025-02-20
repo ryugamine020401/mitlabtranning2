@@ -9,6 +9,14 @@ import { useDispatch } from "react-redux";
 import { setView } from "../../store/authSlice";
 import { UserBox } from "../../services/UserManager/UserBox";
 
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export function LoginView() {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -49,17 +57,19 @@ export function LoginView() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/UsersManager`;
-    console.log(API_URL)
+  const handleSubmit = async (e) => {
+    //const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/UsersManager`;
+    //console.log(API_URL)
     e.preventDefault();
     if (validateFeild()) {
+      const hashedPassword = await hashPassword(formData.password);
+      //console.log(hashedPassword)
       UserBox(
         "/login_user/",
         {
           username: formData.username,
           email: formData.email,
-          password: formData.password,
+          password:hashedPassword,
         },
         false
       )
@@ -133,7 +143,7 @@ export function LoginView() {
             </button>
           </div>
         </div>
-        <Button type="submit" className="w-full" onClick={handleSubmit}>
+        <Button type="submit" className="w-full">
           Login
         </Button>
         {/* 錯誤訊息顯示 */}

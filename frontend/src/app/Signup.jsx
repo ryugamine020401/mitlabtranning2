@@ -8,6 +8,16 @@ import { setView } from "../../store/authSlice";
 import { Eye, EyeOff } from "lucide-react";
 import { UserBox } from "../../services/UserManager/UserBox";
 
+
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+
 export function SignupView() {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -52,16 +62,16 @@ export function SignupView() {
     "連江縣",
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-
+      const hashedPassword = await hashPassword(formData.password);
       UserBox(
         "/create_user/",
         {
           username: formData.username,
           email: formData.email,
-          password: formData.password,
+          password: hashedPassword,
           name: formData.name,
           phone_number: formData.phone,
           date_of_birth: formData.birthDate,

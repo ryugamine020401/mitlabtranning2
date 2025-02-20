@@ -8,6 +8,14 @@ import { Eye, EyeOff } from "lucide-react";
 import { setHomeView } from "../../../../store/homeSlice";
 import { UserBox } from "../../../../services/UserManager/UserBox";
 
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export function ResetPasswordView() {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -65,16 +73,18 @@ export function ResetPasswordView() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateField()) {
+      const oldhashedPassword = await hashPassword(formData.oldpassword);
+      const hashedPassword = await hashPassword(formData.confirmPassword);
       UserBox(
         "/updatePW_user/",
         {
           username: formData.username,
           email: formData.email,
-          old_password: formData.oldpassword,
-          new_password: formData.confirmPassword,
+          old_password: oldhashedPassword,
+          new_password: hashedPassword,
         },
         true,
       )
@@ -89,7 +99,6 @@ export function ResetPasswordView() {
     }
   };
 
-  const handleResetPassword = (e) => {};
 
   return (
     <div className="flex-1 ml-60 min-h-screen bg-gray-50 p-4">

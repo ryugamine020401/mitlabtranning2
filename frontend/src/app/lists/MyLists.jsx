@@ -16,9 +16,12 @@ export default function MyList() {
   const [newListData, setNewListData] = useState({ name: "", description: "" });
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState(""); // 儲存錯誤訊息
+  const [successMessage, setSuccessMessage] = useState(""); // 儲存成功訊息
   const [refreshKey, setRefreshKey] = useState(0); // 用來觸發 `useEffect`
 
   useEffect(() => {
+    setErrorMessage("");
+    setSuccessMessage("");
     ListBox("/get_list/", {}, true)
       .then((response) => {
         if (response.data.length > 0) {
@@ -54,24 +57,54 @@ export default function MyList() {
 
   const handleSave = () => {
     if (validateForm(editingData)) {
-      setMyLists(
-        myLists.map((list) =>
-          list.id === editingId
-            ? {
-                ...list,
-                name: editingData.name,
-                description: editingData.description,
-              }
-            : list
-        )
-      );
-      setEditingId(null);
-      setEditingData({ name: "", description: "" });
+      
+      ListBox(
+        "/update_list/",
+        {
+          list_uid: editingId,
+          list_name: editingData.name,
+          description: editingData.description,
+        },
+        true
+      )
+        .then((result) => {
+          console.log("updata_list successful!");
+          setSuccessMessage("更新成功");
+          setEditingId("");
+          setEditingData({ name: "", description: "" });
+          setTimeout(() => {
+            setSuccessMessage("");
+            setRefreshKey((prevKey) => prevKey + 1);
+          }, 1500);
+        })
+        .catch((error) => {
+          setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+          console.log("updata_list failed:", error.message);
+        });
     }
   };
 
   const handleDelete = (id) => {
-    setMyLists(myLists.filter((list) => list.id !== id));
+    ListBox(
+      "/delete_list/",
+      {
+        list_uid: id,
+      },
+      true
+    )
+      .then((result) => {
+        console.log("Delet_list successful!");
+        setSuccessMessage("刪除成功");
+        setMyLists(myLists.filter((list) => list.id !== id));
+        setTimeout(() => {
+          setSuccessMessage("");
+          setRefreshKey((prevKey) => prevKey + 1);
+        }, 1500);
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // 顯示API回傳的錯誤訊息
+        console.log("Delet_list failed:", error.message);
+      });
   };
 
   const handleAddNew = () => {
@@ -107,6 +140,8 @@ export default function MyList() {
       <h1 className="text-2xl font-bold mb-6">My Lists</h1>
       {/* 錯誤訊息顯示 */}
       {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+      {/* 成功訊息顯示 */}
+      {successMessage && <p className="text-green-500">{successMessage}</p>}
       <div className="space-y-4">
         {myLists.map((list) => (
           <div
@@ -139,7 +174,7 @@ export default function MyList() {
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    setEditingId(null);
+                    setEditingId("");
                     setEditingData({ name: "", description: "" });
                     setErrors({});
                   }}
