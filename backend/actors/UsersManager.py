@@ -230,3 +230,18 @@ class UsersManager:
         except Exception as e:
             return {"status": "fail", "msg": "Fail to update password."}
         
+    @staticmethod
+    @router.post("/dc_register_user/")
+    async def test_dc(data: RegisterDCUserSchema):
+        """
+        測試
+        """
+        print(data.username)
+        # return {"status": "success", "msg": "User found.", "username": data.username}
+        user = await UsersModel.filter(username=data.username)
+        if user:
+            return {"status": "success", "msg": "User found.", "username": data.username}
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        
