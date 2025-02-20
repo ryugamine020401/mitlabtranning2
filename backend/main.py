@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from tortoise.contrib.fastapi import register_tortoise
+from tortoise.contrib.fastapi import RegisterTortoise
 import config
 
 from utils import *
@@ -16,7 +16,7 @@ app.include_router(products_manager_router, prefix="/api/ProductsManager", tags=
 app.include_router(permissions_manager_router, prefix="/api/ListPermissionsManager", tags=["List PermissionsManager Manager"])
 
 
-register_tortoise(
+RegisterTortoise(
     app,
     config=config.TORTOISE_ORM,
     generate_schemas=True,
