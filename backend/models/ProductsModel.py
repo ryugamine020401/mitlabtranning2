@@ -5,7 +5,7 @@ class ProductsModel(Model):
     """
     產品內容
     """
-    id = fields.IntField(pk=True)
+    id = fields.IntField(primary_key=True)
     f_user_id = fields.ForeignKeyField(
         "models.UsersModel", 
         related_name="products",

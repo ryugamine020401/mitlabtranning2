@@ -1,6 +1,6 @@
 from .BaseSchema import BaseSchema
 from pydantic import Field
-from typing import Optional
+from typing import Optional, List
 
 # 獲取產品請求模型
 class GetProductSchema(BaseSchema):
@@ -31,3 +31,6 @@ class UpdateProductSchema(BaseSchema):
     product_number: str = Field(..., max_length=13)
     expiry_date: str = Field(..., max_length=10)
     description: Optional[str] = Field(..., max_length=255)
+
+class CheckProductExpiryDateSchema(BaseSchema):
+    username: List[str] = Field(..., )

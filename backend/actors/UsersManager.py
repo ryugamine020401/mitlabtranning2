@@ -5,9 +5,17 @@ router = APIRouter()
 
 async def get_next_id(table) -> str:
     """
-    直接查詢資料庫中最大的 id，並返回下一個 id
+    查詢資料庫中最大的 id，並返回下一個 id
     """
+    qs = await table.all()  # 先 await table.all() 取得查詢集
+    print(f"qs : {qs}")
+    # max_id_list = await qs.values_list("id", flat=True)  # 再從查詢集取得所有 id
+
+    # if not max_id_list:  # 如果沒有數據，直接從 1 開始
+    #     return "1"
+
     max_id = await table.all().values_list("id", flat=True)  # 取得所有 id
+    print(table.all())
     max_id = max(map(int, max_id), default=0)  # 找出最大 id，確保是整數
     return str(max_id + 1)  # 返回下一個 ID
 
@@ -101,7 +109,7 @@ class UsersManager:
             # 創建 profile
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(
-                    f"{FRONTEND_URL}/api/ProfilesManager/create_profile/",  # FastAPI 伺服器網址
+                    f"{FRONTEND_URL}:38777/api/ProfilesManager/create_profile/",  # FastAPI 伺服器網址
                     json={
                         "f_user_id": user.user_uid,
                         "name": data.name,
@@ -119,6 +127,7 @@ class UsersManager:
             }
         
         except Exception as e:
+            print(f"UserManager 127 {e}")
             return {"status": "fail", "msg": "Fail to create user.", "data": []}
 
     @staticmethod
@@ -235,3 +244,20 @@ class UsersManager:
             shutil.rmtree(folder_path)  # 移除整個資料夾及其內容
 
         return {"status": "success", "msg": "Successful delete user."}
+    
+    @staticmethod
+    @router.post("/dc_register_user/")
+    async def test_dc(data: RegisterDCUserSchema):
+        """
+        測試
+        """
+        print(data.username)
+        # return {"status": "success", "msg": "User found.", "username": data.username}
+        user = await UsersModel.filter(username=data.username)
+        if user:
+            return {"status": "success", "msg": "User found.", "username": data.username}
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        
+

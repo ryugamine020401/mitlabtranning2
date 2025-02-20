@@ -39,3 +39,7 @@ class UpdatePasswordUserSchema(BaseSchema):
 # 更新 Email 請求模型
 class UpdateEmailUserSchema(BaseSchema):
     email: str = Field(..., max_length=320)
+
+# dc註冊 請求模型
+class RegisterDCUserSchema(BaseSchema):
+    username: str = Field(..., max_length=320)

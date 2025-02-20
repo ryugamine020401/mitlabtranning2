@@ -9,7 +9,7 @@ class ProfilesModel(Model):
         "models.UsersModel",
         related_name="profiles",
         on_delete=fields.CASCADE,
-        pk=True
+        primary_key=True
     )
     name = fields.CharField(max_length=50, null=True)
     phone_number = fields.CharField(max_length=15, null=True)

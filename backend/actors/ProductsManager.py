@@ -164,3 +164,34 @@ class ProductsManager:
         
         except Exception as e:
             return {"status": "fail", "msg": "Fail to update product."}
+        
+    @staticmethod
+    @router.post("/dc_get_product/")
+    async def get_product(data: CheckProductExpiryDateSchema):
+        """
+        獲取有效期限低於一個月的產品
+        """
+        responese_dict = {username:{"Expired":[], "ExpiredSoon":[]} for username in data.username}
+       
+        
+        for username in data.username:
+            
+            print(f"username : {username}")
+            userinstance = await UsersModel.get_or_none(username=username)
+            products = await ProductsModel.filter(f_user_id=userinstance)
+            for product in products:
+                print(f"user {username} has {product.product_name} it expiry_date is {product.expiry_date}")
+                expiry_date = datetime.strptime(product.expiry_date, "%Y-%m-%d")
+                now = datetime.now()
+                three_months_before_expiry = expiry_date - timedelta(days=90)
+                print(three_months_before_expiry)
+                if now > expiry_date:
+                    print("❌ 已過期！")
+                    responese_dict[username]['Expired'].append(product.product_name)
+                elif now >= three_months_before_expiry:
+                    print("⚠️ 快過期了！")
+                    responese_dict[username]['ExpiredSoon'].append(product.product_name)
+                else:
+                    print("✅ 還有足夠的時間！")
+        print(responese_dict)
+        return {"status": "success", "msg": "success to get product.", "data": responese_dict}

@@ -8,7 +8,7 @@ class UsersModel(Model):
     User 的資料庫節定義
     """
     id = fields.CharField(max_length=36, unique=True)
-    user_uid = fields.CharField(max_length=36, pk=True)
+    user_uid = fields.CharField(max_length=36,primary_key=True)
     username = fields.CharField(max_length=30, unique=True)
     email = fields.CharField(max_length=320, unique=True)
     password = fields.CharField(max_length=255)
