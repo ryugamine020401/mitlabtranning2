@@ -9,4 +9,4 @@ class GetStory(BaseSchema):
 # 定義回傳 JSON 結構
 class ReturnStory(BaseModel):
     title: str = Field(..., max_length=100)
-    paragraph: list[str] = Field(..., max_length=300)
+    story: list[str] = Field(..., max_length=300)
