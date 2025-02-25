@@ -186,7 +186,7 @@ export default function MyList() {
               <>
                 <Link
                   href={{
-                    pathname: `/lists/${list.name}`,
+                    pathname: `/home/${list.name}`,
                     query: { id: list.id },
                   }}
                   className="flex-1"

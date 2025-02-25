@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
-import { FileUpload } from "../FileUpload";
+import { FileUpload } from "../components/FileUpload";
 import {
   Plus,
   Check,
@@ -17,10 +17,10 @@ import {
   Camera,
 } from "lucide-react";
 import { ProductsBox } from "../../../../services/ProductsManager/ProductsBox";
-import { ShareButton } from "./ShareButton";
+import { ShareButton } from "./components/ShareButton";
 //import { useReactToPrint } from "react-to-print"; //PDF
-import { BarcodeScanner } from "./BarcodeScanner";
-import { Story } from "./Story";
+import { BarcodeScanner } from "./components/BarcodeScanner";
+import { Story } from "./components/Story";
 
 export default function ListProduct() {
   const [products, setProducts] = useState([]);
@@ -265,7 +265,7 @@ export default function ListProduct() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href={`/lists`}>
+            <Link href={`/home`}>
               <Button variant="secondary print-btn">
                 <Home className="w-4 h-4 mr-2" />
                 Home

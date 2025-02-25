@@ -46,14 +46,12 @@ export default function SharedList() {
             <div key={list.id} className="flex items-center gap-4">
               <Link
                 href={{
-                  pathname: `/lists/${list.listname}`,
+                  pathname: `/home/${list.listname}`,
                   query: { id: list.id },
                 }}
                 className="flex-1"
               >
-                <div
-                  className="flex-1 bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
-                >
+                <div className="flex-1 bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex justify-between items-center">
                     <div className="flex gap-4">
                       <span className="font-bold">{list.listname}</span>

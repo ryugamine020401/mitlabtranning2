@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { BotBox } from "../../../../services/BotManager/BotBox";
+import { BotBox } from "../../../../../services/BotManager/BotBox";
 
 export function Story({ product, onClose }) {
   const [data, setData] = useState(null);
@@ -52,7 +52,7 @@ export function Story({ product, onClose }) {
       </div>
     );
   }
-  
+
   const handleNext = () => {
     if (page < data.story.length - 1) setPage(page + 1);
   };

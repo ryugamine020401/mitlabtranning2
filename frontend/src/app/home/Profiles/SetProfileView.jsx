@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
-import { FileUpload } from "../FileUpload";
+import { FileUpload } from "../components/FileUpload";
 import Link from "next/link";
 import { setHomeView } from "../../../../store/homeSlice";
 import { ProfilesBox } from "../../../../services/ProfilesManager/ProfilesBox";
@@ -20,7 +20,7 @@ export function SetProfileView() {
     phone: "",
     birthDate: "",
     profile_picture_url: "",
-    bio: ""
+    bio: "",
   });
   const taiwanCities = [
     "基隆市",
@@ -63,7 +63,7 @@ export function SetProfileView() {
             phone: response.data[0].phone_number,
             birthDate: response.data[0].date_of_birth,
             //profile_picture_url: response.data[0].profile_picture_url,
-            bio:response.data[0].bio || "無"
+            bio: response.data[0].bio || "無",
           });
         }
       })
@@ -81,8 +81,8 @@ export function SetProfileView() {
   };
 
   const handleSubmit = (e) => {
-    setErrorMessage("")
-    setSuccessMessage("")
+    setErrorMessage("");
+    setSuccessMessage("");
     console.log(formData);
     e.preventDefault();
     //if (validateForm()) {
@@ -94,7 +94,7 @@ export function SetProfileView() {
         date_of_birth: formData.birthDate,
         address: `${formData.city}${formData.address}`,
         profile_picture_url: formData.profile_picture_url || "",
-        bio: formData.bio|| "無",
+        bio: formData.bio || "無",
       },
       true
     )
@@ -179,7 +179,7 @@ export function SetProfileView() {
             onFileSelect={(base64) => {
               setFormData((prev) => ({
                 ...prev,
-                profile_picture_url: base64 || "" , // 確保變數名稱一致
+                profile_picture_url: base64 || "", // 確保變數名稱一致
               }));
             }}
           />

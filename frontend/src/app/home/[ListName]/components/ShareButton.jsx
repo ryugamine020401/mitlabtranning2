@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Button } from "../../components/Button";
-import { Input } from "../../components/Input";
+import { Button } from "../../../components/Button";
+import { Input } from "../../../components/Input";
 import { Plus, Trash2, Users } from "lucide-react";
-import { ListPermissionsBox } from "../../../../services/ListPermissionsManager/ListPermissionsBox";
+import { ListPermissionsBox } from "../../../../../services/ListPermissionsManager/ListPermissionsBox";
 
 export function ShareButton() {
   const [showShareModal, setShowShareModal] = useState(false);
@@ -29,7 +29,7 @@ export function ShareButton() {
   const handleShow = () => {
     setErrorMessage("");
     setSuccessMessage("");
-  
+
     ListPermissionsBox(
       "/get_viewer_permission/",
       {
@@ -39,11 +39,11 @@ export function ShareButton() {
     )
       .then((response) => {
         const data = response.data;
-  
+
         if (data.length > 0) {
           // 取得 owner_email (假設 API 回傳的 owner_email 一致)
           const ownerEmail = data[0].f_owner_email || "未提供";
-  
+
           // 檢查是否存在 viewer (有 `f_viewer_email` 和 `f_viewer_id`)
           const formattedMembers = data
             .filter((item) => item.f_viewer_email && item.f_viewer_id) // 過濾掉沒有 viewer 的項目
@@ -53,15 +53,15 @@ export function ShareButton() {
               role: "Member",
               viewer_id: item.f_viewer_id,
             }));
-  
+
           console.log("get_viewer success");
-  
+
           // 更新 members 狀態，確保只保留 owner 或加上 viewers
           setMembers([
             { id: 1, name: ownerEmail, role: "Owner", viewer_id: "" }, // 保留 owner
             ...formattedMembers, // 只加入有 viewer 的項目
           ]);
-  
+
           setShowShareModal(true);
         } else {
           // 沒有 viewers，只保留 owner
@@ -75,7 +75,6 @@ export function ShareButton() {
         console.log("get_viewer failed:", error.message);
       });
   };
-  
 
   const handleShare = () => {
     if (shareEmail) {
@@ -89,7 +88,7 @@ export function ShareButton() {
       )
         .then((response) => {
           console.log("create_viewer success");
-          setSuccessMessage("新增成功")
+          setSuccessMessage("新增成功");
           setTimeout(() => {
             setSuccessMessage("");
             handleShow(true);
@@ -103,7 +102,7 @@ export function ShareButton() {
     }
   };
   const handleRemoveMember = (id) => {
-    console.log(id)
+    console.log(id);
     ListPermissionsBox(
       "/delete_viewer_permission/",
       {
@@ -114,7 +113,7 @@ export function ShareButton() {
     )
       .then((response) => {
         console.log("delete_viewer success");
-        setSuccessMessage("刪除成功")
+        setSuccessMessage("刪除成功");
         setTimeout(() => {
           setSuccessMessage("");
           handleShow(true);

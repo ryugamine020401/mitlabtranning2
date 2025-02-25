@@ -79,7 +79,7 @@ export function LoginView() {
         .then((response) => {
           console.log("Login success");
           localStorage.setItem("token", response.data[0].token);
-          router.push("/lists");
+          router.push("/home");
         })
         .catch((error) => {
           setErrorMessage(error.message); // 顯示API回傳的錯誤訊息

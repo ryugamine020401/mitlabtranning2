@@ -1,6 +1,6 @@
 "use client"
 
-import ListProduct from "./Products"
+import ListProduct from "./ListProduct"
 
 
 export default function Product() {
