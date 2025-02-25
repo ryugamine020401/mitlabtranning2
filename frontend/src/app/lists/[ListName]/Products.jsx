@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
@@ -20,6 +20,7 @@ import { ProductsBox } from "../../../../services/ProductsManager/ProductsBox";
 import { ShareButton } from "./ShareButton";
 //import { useReactToPrint } from "react-to-print"; //PDF
 import { BarcodeScanner } from "./BarcodeScanner";
+import { Story } from "./Story";
 
 export default function ListProduct() {
   const [products, setProducts] = useState([]);
@@ -43,6 +44,8 @@ export default function ListProduct() {
   const [listid, setListid] = useState(null);
   const [listname, setListName] = useState("");
   const [showScanner, setShowScanner] = useState("");
+  const [oldestProduct, setOldestProduct] = useState(null);
+  const hasFetched = useRef(false); // 記錄 API 是否已被調用
 
   useEffect(() => {
     const currentPath = window.location.pathname; // 取得路由 path
@@ -69,7 +72,18 @@ export default function ListProduct() {
             description: item.description || "",
             checked: false,
           }));
+
           setProducts(formattedProduct);
+
+          if (hasFetched.current) return; // 若已調用過 API，則直接返回
+          hasFetched.current = true; // 標記 API 已調用
+          // 找到最舊的 expire_date 產品
+          const oldest = formattedProduct.reduce((oldest, current) =>
+            new Date(current.expire_date) < new Date(oldest.expire_date)
+              ? current
+              : oldest
+          );
+          setOldestProduct(oldest);
         } else {
           setProducts([]);
           setErrorMessage(response.msg);
@@ -371,16 +385,16 @@ export default function ListProduct() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {editingId === product.id ? (
                           <div className="flex items-center gap-2 relative">
-                          <Input
-                            value={editingProduct.product_barcode}
-                            onChange={(e) =>
-                              handleEditChange(
-                                "product_barcode",
-                                e.target.value
-                              )
-                            }
-                          />
-                          <Button
+                            <Input
+                              value={editingProduct.product_barcode}
+                              onChange={(e) =>
+                                handleEditChange(
+                                  "product_barcode",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => setShowScanner(product.id)}
@@ -403,7 +417,7 @@ export default function ListProduct() {
                         ) : (
                           product.product_barcode
                         )}
-                      </td> 
+                      </td>
 
                       <td className="px-6 py-4 whitespace-nowrap">
                         {editingId === product.id ? (
@@ -574,6 +588,16 @@ export default function ListProduct() {
             )}
           </div>
         </div>
+      </div>
+      <div>
+        {oldestProduct && (
+          <div>
+            <Story
+              product={oldestProduct}
+              onClose={() => setOldestProduct(null)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

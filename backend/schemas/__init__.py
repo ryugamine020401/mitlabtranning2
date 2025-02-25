@@ -4,4 +4,4 @@ from .ProfilesSchema import *
 from .ListsSchema import *
 from .ProductsSchema import *
 from .ListPermissionsSchema import *
-from .GPTSchema import *
+from .BotSchema import *
