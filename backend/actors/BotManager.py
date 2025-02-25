@@ -1,9 +1,9 @@
 from utils import *
-from schemas.GPTSchema import *
+from schemas.BotSchema import *
 
 router = APIRouter()
 
-class GPTManager:
+class BotManager:
     @staticmethod
     @router.post("/get_story/")
     async def get_story(data: GetStory, current_user: UsersModel = Depends(get_current_user)):
@@ -21,16 +21,14 @@ class GPTManager:
                 }
             )
             my_story: list[ReturnStory] = response.parsed
+
             return {
                 "status": "success", 
                 "msg": "Successful create a story.", 
-                "data": [
-                    {
-                        "title": story.title, 
-                        "story": story.paragraph
-                    } 
-                    for story in my_story
-                ]
+                "data": {
+                    "title": my_story[0].title,  
+                    "story": my_story[0].story  
+                }
             }
             
         except Exception as e:

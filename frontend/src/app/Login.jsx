@@ -10,6 +10,9 @@ import { setView } from "../../store/authSlice";
 import { UserBox } from "../../services/UserManager/UserBox";
 
 async function hashPassword(password) {
+  // console.log("Is running in browser:", typeof window !== "undefined");
+  // console.log("crypto:", crypto);
+  // console.log("crypto.subtle:", crypto.subtle);
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
