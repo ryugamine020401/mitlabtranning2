@@ -12,7 +12,7 @@ export function BarcodeScanner({ onScan, onClose }) {
   useEffect(() => {
     if (effectRan.current === false) {
       if (!videoRef.current) return;
-      console.log("useEffect 執行一次");
+      //console.log("useEffect 執行一次");
       effectRan.current = true; // 設定為已執行
 
       const reader = new BrowserMultiFormatReader();
@@ -44,15 +44,15 @@ export function BarcodeScanner({ onScan, onClose }) {
   }, []); // 監聽 videoRef.current
 
   const stopScanning = () => {
-    console.log("videoRef.current:", videoRef.current);
+    //console.log("videoRef.current:", videoRef.current);
 
-    console.log("停止掃描");
+    //console.log("停止掃描");
     if (controlsRef.current) {
       controlsRef.current.stop();
       console.log("controls 停止成功");
       onClose();
     } else {
-      console.warn("controlsRef.current 為 null，無法停止掃描");
+      //console.warn("controlsRef.current 為 null，無法停止掃描");
     }
 
     // 確保所有相機流已關閉

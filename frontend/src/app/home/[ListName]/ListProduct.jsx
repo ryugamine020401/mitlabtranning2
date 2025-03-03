@@ -100,6 +100,9 @@ export default function ListProduct() {
         product.id === id ? { ...product, checked: !product.checked } : product
       )
     );
+    setTimeout(() => {
+      handleDelete(id);
+    }, 800);
   };
 
   const handleEdit = (product) => {
@@ -176,7 +179,7 @@ export default function ListProduct() {
     )
       .then((result) => {
         console.log("Delet_product successful!");
-        setSuccessMessage("刪除成功");
+        setSuccessMessage("更新成功");
         setEditingId(null);
         setTimeout(() => {
           setSuccessMessage("");
@@ -242,11 +245,6 @@ export default function ListProduct() {
   const handlePrint = () => {
     window.print();
   };
-  /* const handlePrint = useReactToPrint({
-    content: () => printRef.current, // 指定要轉為 PDF 的區域
-    documentTitle: "MyPDF", // 下載 PDF 的文件名稱
-  });
- */
   const validateForm = (data) => {
     const newErrors = {};
     if (!data.product_name.trim()) newErrors.product_name = "商品名稱不能為空";
@@ -522,7 +520,7 @@ export default function ListProduct() {
                         />
                       </td>
                       <td className="px-6 py-4">
-                        <Input
+                        {/* <Input
                           value={newProduct.product_barcode}
                           onChange={(e) =>
                             setNewProduct({
@@ -532,7 +530,44 @@ export default function ListProduct() {
                           }
                           placeholder="條碼"
                           error={errors.product_barcode}
-                        />
+                        ></Input> */}
+                        <div className="flex items-center gap-2 relative">
+                          <Input
+                            value={newProduct.product_barcode}
+                            onChange={(e) =>
+                              setNewProduct({
+                                ...newProduct,
+                                product_barcode: e.target.value,
+                              })
+                            }
+                            placeholder="條碼"
+                            error={errors.product_barcode}
+                          />
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShowScanner(true)}
+                            className="flex-shrink-0"
+                          >
+                            <Camera className="h-4 w-4" />
+                          </Button>
+                          {showScanner && (
+                            <div className="absolute top-full left-0 mt-2">
+                              <BarcodeScanner
+                                onScan={(code) => {
+                                  setNewProduct({
+                                    ...newProduct,
+                                    product_barcode: code,
+                                  })
+                                  
+                                  setShowScanner(null);
+                                }}
+                                onClose={() => setShowScanner(null)}
+                              />
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <Input
