@@ -109,7 +109,7 @@ class UsersManager:
             # 創建 profile
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(
-                    f"{FRONTEND_URL}:38777/api/ProfilesManager/create_profile/",  # FastAPI 伺服器網址
+                    f"{FRONTEND_URL}/api/ProfilesManager/create_profile/",  # FastAPI 伺服器網址
                     json={
                         "f_user_id": user.user_uid,
                         "name": data.name,
@@ -127,7 +127,6 @@ class UsersManager:
             }
         
         except Exception as e:
-            print(f"UserManager 127 {e}")
             return {"status": "fail", "msg": "Fail to create user.", "data": []}
 
     @staticmethod
